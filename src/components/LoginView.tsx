@@ -268,37 +268,7 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
               </button>
             </form>
 
-            <div className="my-6 flex items-center justify-between text-[11px] text-brand-outline-variant font-bold leading-none">
-              <div className="border-t border-brand-outline-variant flex-grow mr-2" />
-              <span>OU</span>
-              <div className="border-t border-brand-outline-variant flex-grow ml-2" />
-            </div>
 
-            {/* REGISTER TOGGLING BUTTON */}
-            <div className="text-center space-y-4 mb-4">
-              <button
-                onClick={() => {
-                  setIsRegister(true);
-                  setErrorMessage('');
-                  setRecoveryMessage('');
-                }}
-                className="w-full bg-brand-primary text-white hover:bg-brand-primary-container font-black text-xs py-3 rounded-xl transition-all shadow-md shadow-brand-primary/10 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Cadastrar Novo Restaurante</span>
-              </button>
-              
-              <div className="bg-brand-surface border border-brand-container-high rounded-xl p-3 text-[10px] text-brand-on-surface-variant font-semibold">
-                <span className="text-brand-primary block font-extrabold mb-1">💡 Atalho de Visualização Rápida</span>
-                Disponibilizamos o restaurante <strong>Casa de Tereza</strong> para simulação instantânea no admin.
-                <button
-                  onClick={handleShortcutLogin}
-                  className="text-brand-primary underline hover:text-brand-primary-container font-extrabold block w-full mt-1 px-2 py-1 bg-white rounded border border-brand-outline-variant/50"
-                >
-                  Entrar Direto como Casa de Tereza →
-                </button>
-              </div>
-            </div>
           </div>
         ) : (
           /* ================= REGISTER NEW RESTAURANT FORM ================= */

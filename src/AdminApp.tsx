@@ -32,6 +32,12 @@ export default function AdminApp() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
+  // Categories State
+  const [categories, setCategories] = useState<string[]>([
+    'Acarajé', 'Moqueca', 'Hamburgueria', 'Sushi', 'Barzinho', 'Café',
+    'Axé', 'Samba', 'Forró', 'Jazz', 'Cultura', 'Gastronomia', 'Eventos'
+  ]);
+
   // Supabase Sync States
   const [dbLoading, setDbLoading] = useState(true);
   const [dbTablesMissing, setDbTablesMissing] = useState(false);
@@ -165,6 +171,9 @@ export default function AdminApp() {
               onAddArticle={handleAddArticle}
               onUpdateArticle={handleUpdateArticle}
               onDeleteArticle={handleDeleteArticle}
+              categories={categories}
+              onAddCategory={(cat) => setCategories(prev => [...prev, cat])}
+              onDeleteCategory={(cat) => setCategories(prev => prev.filter(c => c !== cat))}
             />
           ) : (
             <AdminDashboard 

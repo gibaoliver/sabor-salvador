@@ -21,7 +21,7 @@ export interface Restaurant {
   reviewsCount: number;
   neighborhood: 'Rio Vermelho' | 'Barra' | 'Pelourinho' | 'Pituba';
   priceRange: '$' | '$$' | '$$$';
-  category: 'Acarajé' | 'Moqueca' | 'Hamburgueria' | 'Sushi' | 'Barzinho' | 'Café';
+  category: string;
   imageUrl: string;
   description: string;
   address: string;
@@ -40,7 +40,7 @@ export interface Event {
   location: string;
   neighborhood: string;
   price: string;
-  category: 'Axé' | 'Samba' | 'Forró' | 'Jazz' | 'Alternativo' | 'Todos';
+  category: string;
   imageUrl: string;
   badge?: string;
   status?: 'Confirmado' | 'Esgotado' | 'Indisponível';
@@ -50,7 +50,7 @@ export interface GuideArticle {
   id: string;
   title: string;
   summary: string;
-  category: 'Cultura' | 'Música' | 'Gastronomia' | 'Noite' | 'Eventos';
+  category: string;
   date: string;
   imageUrl: string;
   readTime: string;
