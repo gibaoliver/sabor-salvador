@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# node/npm binaries downloaded by IDE
+node/
+node.zip
