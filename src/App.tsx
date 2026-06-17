@@ -6,17 +6,12 @@ import RestaurantListView from './components/RestaurantListView';
 import RestaurantDetailView from './components/RestaurantDetailView';
 import EventsView from './components/EventsView';
 import GuidesView from './components/GuidesView';
-import LoginView from './components/LoginView';
-import AdminDashboard from './components/AdminDashboard';
-import SupabaseConsole from './components/SupabaseConsole';
 
 import { 
   getRestaurantsFromSupabase, 
   getEventsFromSupabase, 
-  upsertRestaurantToSupabase, 
-  upsertEventToSupabase, 
-  deleteEventFromSupabase, 
-  seedSupabaseInitialData 
+  getArticlesFromSupabase,
+  upsertRestaurantToSupabase
 } from './supabaseService';
 
 import { 
@@ -24,50 +19,40 @@ import {
   INITIAL_EVENTS, 
   INITIAL_ARTICLES 
 } from './data';
-import { Restaurant, Event, Review } from './types';
+import { Restaurant, Event, Review, GuideArticle } from './types';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'restaurants' | 'events' | 'guides' | 'login' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'restaurants' | 'events' | 'guides'>('home');
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   
   // Real reactive state
   const [restaurants, setRestaurants] = useState<Restaurant[]>(INITIAL_RESTAURANTS);
   const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS);
-  const [articles] = useState(INITIAL_ARTICLES);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [articles, setArticles] = useState<GuideArticle[]>(INITIAL_ARTICLES);
 
-  // Supabase Sync States
-  const [dbLoading, setDbLoading] = useState(true);
-  const [dbTablesMissing, setDbTablesMissing] = useState(false);
-
-  // Search routing state (passed from Home Search click to Directory list filter)
+  // Search routing state
   const [searchFood, setSearchFood] = useState('');
   const [searchBairro, setSearchBairro] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
 
   // Load from Supabase
   const loadSupabaseData = async () => {
-    setDbLoading(true);
     try {
       const supRests = await getRestaurantsFromSupabase();
       const supEvents = await getEventsFromSupabase();
+      const supArticles = await getArticlesFromSupabase();
 
-      if (supRests === null || supEvents === null) {
-        setDbTablesMissing(true);
-      } else {
-        setDbTablesMissing(false);
-        if (supRests.length > 0) {
-          setRestaurants(supRests);
-        }
-        if (supEvents.length > 0) {
-          setEvents(supEvents);
-        }
+      if (supRests && supRests.length > 0) {
+        setRestaurants(supRests);
+      }
+      if (supEvents && supEvents.length > 0) {
+        setEvents(supEvents);
+      }
+      if (supArticles && supArticles.length > 0) {
+        setArticles(supArticles);
       }
     } catch (err) {
       console.error('Error fetching Supabase data on mount:', err);
-      setDbTablesMissing(true);
-    } finally {
-      setDbLoading(false);
     }
   };
 
@@ -101,24 +86,6 @@ export default function App() {
     });
   };
 
-  // Add event dynamically (from Admin)
-  const handleAddEvent = async (newEvent: Event) => {
-    setEvents(prev => [newEvent, ...prev]);
-    await upsertEventToSupabase(newEvent);
-  };
-
-  // Delete event dynamically (from Admin)
-  const handleDeleteEvent = async (eventId: string) => {
-    setEvents(prev => prev.filter(e => e.id !== eventId));
-    await deleteEventFromSupabase(eventId);
-  };
-
-  // Modify restaurant info (from Admin)
-  const handleUpdateRestaurant = async (updated: Restaurant) => {
-    setRestaurants(prev => prev.map(r => r.id === updated.id ? updated : r));
-    await upsertRestaurantToSupabase(updated);
-  };
-
   // Select restaurant -> redirect to detail view
   const handleSelectRestaurant = (id: string) => {
     setSelectedRestaurantId(id);
@@ -133,33 +100,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-    setActiveTab('admin');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleRegisterRestaurant = async (newRestaurant: Restaurant) => {
-    setRestaurants(prev => [newRestaurant, ...prev]);
-    setIsLoggedIn(true);
-    // Focus directly on the newly created restaurant details!
-    setSelectedRestaurantId(newRestaurant.id);
-    setActiveTab('restaurants');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Save to database
-    await upsertRestaurantToSupabase(newRestaurant);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setActiveTab('home');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Admin restaurant record selection (default to Casa de Tereza)
-  const adminRestaurant = restaurants.find(r => r.id === 'casa-de-tereza') || restaurants[0];
-
   return (
     <div className="min-h-screen bg-brand-surface text-brand-on-surface flex flex-col justify-between font-sans">
       
@@ -167,8 +107,6 @@ export default function App() {
       <Header 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        isLoggedIn={isLoggedIn}
-        onLogout={handleLogout}
         selectedRestaurantId={selectedRestaurantId}
         setSelectedRestaurantId={setSelectedRestaurantId}
       />
@@ -183,7 +121,7 @@ export default function App() {
             if (!currentRestaurant) return (
               <div className="p-8 flex flex-col items-center justify-center min-h-[50vh] text-center">
                 <p className="text-lg font-bold text-brand-on-surface-variant mb-4">Restaurante não encontrado.</p>
-                <p className="text-sm text-brand-outline mb-6">Pode ser que o banco de dados não possua todos os restaurantes do Bento Grid.</p>
+                <p className="text-sm text-brand-outline mb-6">Pode ser que o banco de dados não possua todos os restaurantes.</p>
                 <button 
                   onClick={handleBackToDirectory}
                   className="bg-brand-primary text-white px-6 py-2 rounded-full font-bold shadow-md hover:bg-brand-primary/90 transition"
@@ -240,21 +178,6 @@ export default function App() {
                     articles={articles}
                   />
                 );
-              case 'login':
-                return (
-                  <LoginView 
-                    onLoginSuccess={handleLoginSuccess}
-                    setActiveTab={setActiveTab}
-                    onRegisterRestaurant={handleRegisterRestaurant}
-                  />
-                );
-              case 'admin':
-                return (
-                  <AdminDashboard 
-                    restaurant={adminRestaurant}
-                    onUpdateRestaurant={handleUpdateRestaurant}
-                  />
-                );
               default:
                 return (
                   <HomeView 
@@ -276,17 +199,6 @@ export default function App() {
         setActiveTab={setActiveTab} 
         setSelectedRestaurantId={setSelectedRestaurantId}
       />
-
-      {/* Supabase Administration Console Deck */}
-      <SupabaseConsole 
-        dbLoading={dbLoading}
-        dbTablesMissing={dbTablesMissing}
-        restaurantsCount={restaurants.length}
-        eventsCount={events.length}
-        onRefresh={loadSupabaseData}
-        onSeed={seedSupabaseInitialData}
-      />
-      
     </div>
   );
 }

@@ -1,12 +1,12 @@
 import React from 'react';
 
 interface FooterProps {
-  setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides' | 'login' | 'admin') => void;
+  setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides') => void;
   setSelectedRestaurantId: (id: string | null) => void;
 }
 
 export default function Footer({ setActiveTab, setSelectedRestaurantId }: FooterProps) {
-  const handleNav = (tab: 'home' | 'restaurants' | 'events' | 'guides' | 'login' | 'admin') => {
+  const handleNav = (tab: 'home' | 'restaurants' | 'events' | 'guides') => {
     setSelectedRestaurantId(null);
     setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -27,7 +27,6 @@ export default function Footer({ setActiveTab, setSelectedRestaurantId }: Footer
           <button onClick={() => handleNav('restaurants')} className="hover:text-white transition">Restaurantes</button>
           <button onClick={() => handleNav('events')} className="hover:text-white transition">Eventos</button>
           <button onClick={() => handleNav('guides')} className="hover:text-white transition">Guias & Blog</button>
-          <button onClick={() => handleNav('login')} className="hover:text-white transition">Painel do Dono</button>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
-import { Restaurant, Event, Review } from './types';
-import { INITIAL_RESTAURANTS, INITIAL_EVENTS } from './data';
+import { Restaurant, Event, Review, GuideArticle } from './types';
+import { INITIAL_RESTAURANTS, INITIAL_EVENTS, INITIAL_ARTICLES } from './data';
 
 // Helper to check if a table exists by attempting a 1-row select
 export async function testTableConnection(tableName: string): Promise<boolean> {
@@ -161,6 +161,71 @@ export async function deleteEventFromSupabase(eventId: string): Promise<boolean>
   return true;
 }
 
+// Fetch all articles
+export async function getArticlesFromSupabase(): Promise<GuideArticle[] | null> {
+  const { data, error } = await supabase
+    .from('articles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching articles from Supabase:', error);
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      return null;
+    }
+    return null;
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    summary: row.summary,
+    category: row.category,
+    date: row.date,
+    imageUrl: row.image_url,
+    readTime: row.read_time,
+    content: row.content,
+  }));
+}
+
+// Insert or update an article
+export async function upsertArticleToSupabase(article: GuideArticle): Promise<boolean> {
+  const payload = {
+    id: article.id,
+    title: article.title,
+    summary: article.summary,
+    category: article.category,
+    date: article.date,
+    image_url: article.imageUrl,
+    read_time: article.readTime,
+    content: article.content,
+  };
+
+  const { error } = await supabase
+    .from('articles')
+    .upsert(payload, { onConflict: 'id' });
+
+  if (error) {
+    console.error(`Error saving article ${article.title} to Supabase:`, error);
+    return false;
+  }
+  return true;
+}
+
+// Delete article from Supabase
+export async function deleteArticleFromSupabase(articleId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('articles')
+    .delete()
+    .eq('id', articleId);
+
+  if (error) {
+    console.error(`Error deleting article ${articleId} from Supabase:`, error);
+    return false;
+  }
+  return true;
+}
+
 // Seeds the Supabase database with initial values
 export async function seedSupabaseInitialData(): Promise<{ success: boolean; message: string }> {
   try {
@@ -180,9 +245,17 @@ export async function seedSupabaseInitialData(): Promise<{ success: boolean; mes
       }
     }
 
+    // 3. Send articles
+    for (const art of INITIAL_ARTICLES) {
+      const ok = await upsertArticleToSupabase(art);
+      if (!ok) {
+        return { success: false, message: `Erro ao enviar dados do artigo: ${art.title}` };
+      }
+    }
+
     return { 
       success: true, 
-      message: 'Todos os restaurantes e eventos de demonstração foram sincronizados com sucesso!' 
+      message: 'Todos os restaurantes, eventos e notícias de demonstração foram sincronizados com sucesso!' 
     };
   } catch (err: any) {
     return { success: false, message: err.message || 'Erro inesperado ao popular as tabelas.' };
@@ -229,9 +302,23 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 3. Habilitar RLS (Row Level Security) e Criar Políticas de Acesso Público Total
+-- 3. Criar tabela de artigos
+CREATE TABLE IF NOT EXISTS articles (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  summary TEXT,
+  category TEXT,
+  date TEXT,
+  image_url TEXT,
+  read_time TEXT,
+  content TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- 4. Habilitar RLS (Row Level Security) e Criar Políticas de Acesso Público Total
 ALTER TABLE restaurants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para Restaurants
 DROP POLICY IF EXISTS "Permitir leitura pública de restaurantes" ON restaurants;
@@ -254,4 +341,15 @@ CREATE POLICY "Permitir leitura pública de eventos" ON events FOR SELECT USING 
 CREATE POLICY "Permitir inserção pública de eventos" ON events FOR INSERT WITH CHECK (true);
 CREATE POLICY "Permitir atualização pública de eventos" ON events FOR UPDATE USING (true);
 CREATE POLICY "Permitir exclusão pública de eventos" ON events FOR DELETE USING (true);
+
+-- Políticas para Articles
+DROP POLICY IF EXISTS "Permitir leitura pública de artigos" ON articles;
+DROP POLICY IF EXISTS "Permitir inserção pública de artigos" ON articles;
+DROP POLICY IF EXISTS "Permitir atualização pública de artigos" ON articles;
+DROP POLICY IF EXISTS "Permitir exclusão pública de artigos" ON articles;
+
+CREATE POLICY "Permitir leitura pública de artigos" ON articles FOR SELECT USING (true);
+CREATE POLICY "Permitir inserção pública de artigos" ON articles FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir atualização pública de artigos" ON articles FOR UPDATE USING (true);
+CREATE POLICY "Permitir exclusão pública de artigos" ON articles FOR DELETE USING (true);
 `;

@@ -5,7 +5,7 @@ import { Restaurant } from '../types';
 interface HomeViewProps {
   restaurants: Restaurant[];
   onSelectRestaurant: (id: string) => void;
-  setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides' | 'login' | 'admin') => void;
+  setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides') => void;
   setSearchFood: (term: string) => void;
   setSearchBairro: (term: string) => void;
   setSelectedCategory: (cat: string) => void;

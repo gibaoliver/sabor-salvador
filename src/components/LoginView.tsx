@@ -3,7 +3,7 @@ import { Mail, Lock, Eye, EyeOff, Utensils, ArrowRight, ArrowLeft, Phone, MapPin
 import { Restaurant } from '../types';
 
 interface LoginViewProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (isSuperAdmin?: boolean) => void;
   setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides' | 'login' | 'admin') => void;
   onRegisterRestaurant?: (newRestaurant: Restaurant) => void;
 }
@@ -63,13 +63,19 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
       setErrorMessage('Por favor, preencha todos os campos!');
       return;
     }
-    onLoginSuccess();
+    
+    if (email.trim().toLowerCase() === 'admin@saborsalvador.com' && password === 'admin123') {
+      onLoginSuccess(true);
+      return;
+    }
+
+    onLoginSuccess(false);
   };
 
   const handleShortcutLogin = () => {
     setEmail('proprietario@casadetereza.com.br');
     setPassword('dende1234');
-    onLoginSuccess();
+    onLoginSuccess(false);
   };
 
   // Handle Registration submission
