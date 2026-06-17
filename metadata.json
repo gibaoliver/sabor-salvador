@@ -1,0 +1,6 @@
+{
+  "name": "Sabor Salvador",
+  "description": "O guia definitivo da gastronomia, cultura e eventos em Salvador. Descubra os melhores restaurantes e experiências típicas da Bahia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
