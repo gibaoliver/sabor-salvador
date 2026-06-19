@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Search, Calendar, MapPin, ThumbsUp, MessageCircle, X, 
   Send, User, Plus, Check, Bookmark, Radio, Eye, Share2, 
@@ -45,23 +46,10 @@ const PRESET_IMAGES = [
 export default function EventsView({ events }: EventsViewProps) {
   const [activeCat, setActiveCat] = useState<'Todos' | 'Axé' | 'Samba' | 'Forró' | 'Jazz' | 'Alternativo'>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentUser, setCurrentUser] = useState<string>(() => localStorage.getItem('sabor_salvador_user') || '');
   
   // Enriched news state
   const [newsList, setNewsList] = useState<NewsArticle[]>([]);
-  const [likedArticles, setLikedArticles] = useState<string[]>([]);
-  const [activeArticle, setActiveArticle] = useState<NewsArticle | null>(null);
 
-  // New Comment Submission Form State
-  const [commentName, setCommentName] = useState('');
-  const [commentText, setCommentText] = useState('');
-
-  // Editing Comment State
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editingCommentText, setEditingCommentText] = useState('');
-
-  // Toast Notify
-  const [toastMessage, setToastMessage] = useState('');
 
   // Helpers inside closure for initial content hydration
   const getDetailedSummary = (id: string) => {
@@ -496,14 +484,15 @@ export default function EventsView({ events }: EventsViewProps) {
                           <span>{news.likes}</span>
                         </button>
 
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleOpenReadNews(news); }}
+                        <Link 
+                          to={`/eventos/${news.id}`}
+                          onClick={(e) => { e.stopPropagation(); }}
                           className="p-1 px-2.5 rounded-lg hover:bg-brand-surface flex items-center gap-1 font-bold"
                           title="Comentários dos Leitores"
                         >
                           <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                           <span>{news.comments.length}</span>
-                        </button>
+                        </Link>
                       </div>
 
                       <button 
@@ -522,208 +511,6 @@ export default function EventsView({ events }: EventsViewProps) {
         </div>
 
       </div>
-
-      {/* FULL NEWS READ MODAL WITH COMMENTS BOARD CRUD */}
-      {activeArticle && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl relative text-left border border-brand-container-high animate-fade-in flex flex-col">
-            
-            {/* Modal Header */}
-            <div className="sticky top-0 z-20 p-5 border-b border-brand-container flex justify-between items-center bg-white/95 backdrop-blur-xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-primary flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 shrink-0 text-brand-primary" />
-                <span>Cobertura de Salvador • {activeArticle.category}</span>
-              </span>
-              <button 
-                onClick={() => {
-                  setActiveArticle(null);
-                  setEditingCommentId(null);
-                }}
-                className="p-1 px-2.5 bg-brand-surface hover:bg-brand-container rounded-full text-brand-outline hover:text-brand-primary font-bold text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Scrollable Container */}
-            <div className="p-6 md:p-8 space-y-6 flex-grow overflow-y-auto">
-              
-              {/* Photo & Title Card */}
-              <div className="rounded-2xl overflow-hidden h-64 w-full relative shrink-0 shadow-inner">
-                <img 
-                  src={activeArticle.imageUrl} 
-                  alt={activeArticle.title} 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 p-5 pt-16">
-                  <div className="flex gap-2 items-center text-[10px] uppercase font-bold text-brand-secondary-container">
-                    <span>{activeArticle.date}</span>
-                    <span>•</span>
-                    <span>{activeArticle.neighborhood}</span>
-                  </div>
-                  <h2 className="font-display text-lg md:text-2xl font-black text-white mt-1 leading-snug">
-                    {activeArticle.title}
-                  </h2>
-                </div>
-              </div>
-
-              {/* Author Metrics metadata */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs font-semibold text-brand-outline border-b border-brand-surface pb-4">
-                <div className="flex gap-3 items-center">
-                  <div className="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold uppercase ring-2 ring-brand-surface shadow-xs">
-                    SS
-                  </div>
-                  <div>
-                    <p className="text-brand-on-surface font-black">Redação Sabor Salvador</p>
-                    <span className="text-[10px]">Pauta: {activeArticle.time || 'Publicação Agenda'}</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 text-xs">
-                  <span className="bg-brand-surface px-2.5 py-1 rounded-md text-[10px] font-extrabold flex items-center gap-1 border border-brand-outline-variant">
-                    <Eye className="w-3 h-3 text-brand-primary" />
-                    <span>{activeArticle.views} Visualizações</span>
-                  </span>
-
-                  <button 
-                    onClick={() => handleToggleLike(activeArticle.id)}
-                    className={`px-3 py-1 rounded-md text-[10px] font-extrabold flex items-center gap-1 border border-brand-outline-variant transition ${
-                      likedArticles.includes(activeArticle.id) ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-brand-surface hover:bg-brand-container'
-                    }`}
-                  >
-                    <ThumbsUp className={`w-3 h-3 ${likedArticles.includes(activeArticle.id) ? 'fill-emerald-700 text-emerald-700' : ''}`} />
-                    <span>{activeArticle.likes} Curtidas</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* High-Fidelity Rich Paragraph Writing */}
-              <div className="text-xs leading-relaxed text-brand-on-surface-variant/90 space-y-4 font-medium whitespace-pre-line text-justify pl-1 border-l-2 border-brand-container-high">
-                {activeArticle.content}
-              </div>
-
-              {/* COMMENTS FORUM SECTION (CRUD IMPLEMENTED) */}
-              <div className="border-t border-brand-container-highest pt-8 mt-5">
-                <h3 className="font-display text-sm font-extrabold text-brand-on-surface mb-6 flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-brand-primary" />
-                  <span>Espaço do Leitor: Comentários ({activeArticle.comments.length})</span>
-                </h3>
-
-                {/* Comment Posting form */}
-                <form onSubmit={handleAddComment} className="bg-brand-surface p-4 rounded-2xl border border-brand-outline-variant space-y-3 mb-6">
-                  <span className="text-[9px] font-bold uppercase text-brand-primary tracking-wider block">Deixe sua opinião sobre esse acontecimento</span>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-1 relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-outline" />
-                      <input 
-                        type="text" 
-                        required
-                        placeholder="Nome do leitor"
-                        value={commentName}
-                        onChange={e => setCommentName(e.target.value)}
-                        className="w-full bg-white border border-brand-outline-variant rounded-xl pl-9 pr-3 py-2 text-[11px] font-semibold focus:outline-none focus:border-brand-primary"
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <input 
-                        type="text" 
-                        required
-                        placeholder="O que achou da notícia? Compartilhe seu axé..."
-                        value={commentText}
-                        onChange={e => setCommentText(e.target.value)}
-                        className="w-full bg-white border border-brand-outline-variant rounded-xl px-4 py-2 text-[11px] font-semibold focus:outline-none focus:border-brand-primary text-left"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-1">
-                    <button
-                      type="submit"
-                      className="bg-brand-primary hover:bg-brand-primary-container text-white text-[11px] font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    >
-                      <Send className="w-3 h-3 text-white" />
-                      <span>Postar comentário</span>
-                    </button>
-                  </div>
-                </form>
-
-                {/* List of Comments Thread with Update/Delete Action controls */}
-                <div className="space-y-4">
-                  {activeArticle.comments.length === 0 ? (
-                    <p className="text-[11px] text-brand-outline italic">Seja o primeiro a inaugurar o debate sobre esta pauta!</p>
-                  ) : (
-                    activeArticle.comments.map((comm) => (
-                      <div key={comm.id} className="p-4 rounded-2xl bg-white border border-brand-container-high transition hover:border-brand-outline shadow-2xs">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-[10px] flex items-center justify-center">
-                              {comm.author.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="text-[11px] font-black text-brand-on-surface">{comm.author}</span>
-                            <span className="text-[9px] text-brand-outline font-medium">• {comm.timeAgo}</span>
-                          </div>
-
-                          <div className="flex gap-2">
-                            {currentUser === comm.author && (
-                              <button
-                                onClick={() => handleStartEditComment(comm)}
-                                className="text-[9px] font-bold text-brand-outline hover:text-brand-primary flex items-center gap-0.5"
-                              >
-                                <Edit2 className="w-2.5 h-2.5" /> Editar
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* If in edit state, render inline edit form */}
-                        {editingCommentId === comm.id ? (
-                          <div className="mt-2 flex gap-2">
-                            <input 
-                              type="text"
-                              value={editingCommentText}
-                              onChange={e => setEditingCommentText(e.target.value)}
-                              className="flex-grow bg-brand-surface border border-brand-outline-variant p-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-brand-primary focus:bg-white"
-                            />
-                            <button
-                              onClick={() => handleSaveEditComment(comm.id)}
-                              className="p-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center gap-1 font-bold text-[10px]"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-brand-on-surface-variant font-medium leading-relaxed italic pl-8">
-                            "{comm.content}"
-                          </p>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* Modal Control Footer */}
-            <div className="p-4 bg-brand-surface border-t border-brand-container flex justify-between items-center shrink-0">
-              <span className="text-[9px] text-brand-outline font-extrabold uppercase">SABOR SALVADOR IMPRENSA • 2026</span>
-              <button
-                onClick={() => {
-                  setActiveArticle(null);
-                  setEditingCommentId(null);
-                }}
-                className="bg-brand-on-surface text-white text-xs font-bold py-2 px-5 rounded-xl hover:bg-brand-on-surface-variant transition cursor-pointer"
-              >
-                Concluir Leitura
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

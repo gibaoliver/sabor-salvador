@@ -1,14 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-interface FooterProps {
-  setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides') => void;
-  setSelectedRestaurantId: (id: string | null) => void;
-}
-
-export default function Footer({ setActiveTab, setSelectedRestaurantId }: FooterProps) {
-  const handleNav = (tab: 'home' | 'restaurants' | 'events' | 'guides') => {
-    setSelectedRestaurantId(null);
-    setActiveTab(tab);
+export default function Footer() {
+  const handleNav = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -23,10 +17,10 @@ export default function Footer({ setActiveTab, setSelectedRestaurantId }: Footer
         </div>
 
         <div className="flex flex-wrap gap-x-8 gap-y-3 test-sm font-medium text-brand-container-highest">
-          <button onClick={() => handleNav('home')} className="hover:text-white transition">Início</button>
-          <button onClick={() => handleNav('restaurants')} className="hover:text-white transition">Restaurantes</button>
-          <button onClick={() => handleNav('events')} className="hover:text-white transition">Eventos</button>
-          <button onClick={() => handleNav('guides')} className="hover:text-white transition">Guias & Blog</button>
+          <Link to="/" onClick={handleNav} className="hover:text-white transition">Início</Link>
+          <Link to="/restaurantes" onClick={handleNav} className="hover:text-white transition">Restaurantes</Link>
+          <Link to="/eventos" onClick={handleNav} className="hover:text-white transition">Eventos</Link>
+          <Link to="/guias" onClick={handleNav} className="hover:text-white transition">Guias & Blog</Link>
         </div>
       </div>
 

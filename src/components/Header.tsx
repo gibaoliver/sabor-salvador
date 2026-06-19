@@ -1,70 +1,62 @@
 import React from 'react';
 import { Search, Bell } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
-interface HeaderProps {
-  activeTab: 'home' | 'restaurants' | 'events' | 'guides';
-  setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides') => void;
-  selectedRestaurantId?: string | null;
-  setSelectedRestaurantId: (id: string | null) => void;
-}
+export default function Header() {
+  const location = useLocation();
+  const currentPath = location.pathname;
 
-export default function Header({
-  activeTab, 
-  setActiveTab, 
-  selectedRestaurantId,
-  setSelectedRestaurantId
-}: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-brand-surface/90 border-b border-brand-container-highest flex-none">
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-18 flex items-center justify-between">
         {/* Brand Logo - Styled with font-display Montserrat */}
-        <div 
-          onClick={() => { setSelectedRestaurantId(null); setActiveTab('home'); }}
+        <Link 
+          to="/"
           className="flex items-center gap-2 cursor-pointer group"
           id="brand-logo-container"
         >
           <span className="font-display text-2xl font-bold tracking-tight text-brand-primary transition group-hover:text-brand-primary-container">
             Sabor Salvador
           </span>
-        </div>
+        </Link>
 
         {/* Navigation Links for Visitors - Screen Headers */}
         <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium text-brand-on-surface-variant">
-          <button
-            onClick={() => { setSelectedRestaurantId(null); setActiveTab('restaurants'); }}
+          <Link
+            to="/restaurantes"
             className={`hover:text-brand-primary transition-colors py-1 relative ${
-              activeTab === 'restaurants' && !selectedRestaurantId ? 'text-brand-primary font-semibold border-b-2 border-brand-primary' : ''
+              currentPath.startsWith('/restaurantes') ? 'text-brand-primary font-semibold border-b-2 border-brand-primary' : ''
             }`}
           >
             Restaurantes
-          </button>
-          <button
-            onClick={() => { setSelectedRestaurantId(null); setActiveTab('events'); }}
+          </Link>
+          <Link
+            to="/eventos"
             className={`hover:text-brand-primary transition-colors py-1 relative ${
-              activeTab === 'events' ? 'text-brand-primary font-semibold border-b-2 border-brand-primary' : ''
+              currentPath.startsWith('/eventos') ? 'text-brand-primary font-semibold border-b-2 border-brand-primary' : ''
             }`}
           >
             Eventos
-          </button>
-          <button
-            onClick={() => { setSelectedRestaurantId(null); setActiveTab('guides'); }}
+          </Link>
+          <Link
+            to="/guias"
             className={`hover:text-brand-primary transition-colors py-1 relative ${
-              activeTab === 'guides' ? 'text-brand-primary font-semibold border-b-2 border-brand-primary' : ''
+              currentPath.startsWith('/guias') ? 'text-brand-primary font-semibold border-b-2 border-brand-primary' : ''
             }`}
           >
             Guias & Blog
-          </button>
+          </Link>
         </nav>
 
         {/* Interactive Controls (Search, Notifications) */}
         <div className="flex items-center gap-4">
-          <button 
-            onClick={() => { setSelectedRestaurantId(null); setActiveTab('restaurants'); }}
+          <Link 
+            to="/restaurantes"
             className="p-2 hover:bg-brand-container-low rounded-full text-brand-on-surface-variant transition"
             aria-label="Search"
           >
             <Search className="w-5 h-5" />
-          </button>
+          </Link>
 
           <button 
             className="p-2 hover:bg-brand-container-low rounded-full text-brand-on-surface-variant transition relative"

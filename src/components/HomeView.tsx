@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Star, CupSoda, Flame, Coffee } from 'lucide-react';
 import { Restaurant } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 interface HomeViewProps {
   restaurants: Restaurant[];
   onSelectRestaurant: (id: string) => void;
-  setActiveTab: (tab: 'home' | 'restaurants' | 'events' | 'guides') => void;
   setSearchFood: (term: string) => void;
   setSearchBairro: (term: string) => void;
   setSelectedCategory: (cat: string) => void;
@@ -14,11 +14,11 @@ interface HomeViewProps {
 export default function HomeView({
   restaurants,
   onSelectRestaurant,
-  setActiveTab,
   setSearchFood,
   setSearchBairro,
   setSelectedCategory
 }: HomeViewProps) {
+  const navigate = useNavigate();
   const [foodInput, setFoodInput] = useState('');
   const [bairroInput, setBairroInput] = useState('');
 
@@ -38,12 +38,12 @@ export default function HomeView({
     e.preventDefault();
     setSearchFood(foodInput);
     setSearchBairro(bairroInput);
-    setActiveTab('restaurants');
+    navigate('/restaurantes');
   };
 
   const handleCategoryClick = (catName: string) => {
     setSelectedCategory(catName);
-    setActiveTab('restaurants');
+    navigate('/restaurantes');
   };
 
   // Renders the customized palm tree / sun rating "Dendê Meter"
@@ -227,7 +227,7 @@ export default function HomeView({
             </div>
 
             <button 
-              onClick={() => setActiveTab('events')}
+              onClick={() => navigate('/eventos')}
               className="w-full text-center bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2.5 rounded-xl transition cursor-pointer z-10"
             >
               Ver Programação Oficial →

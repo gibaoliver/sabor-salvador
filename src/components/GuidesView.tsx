@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Mail, BookOpen, Clock, Heart, ArrowRight, X, Send, User, Edit2, Trash2, Check, MessageCircle } from 'lucide-react';
 import { GuideArticle } from '../types';
 
@@ -6,51 +7,9 @@ interface GuidesViewProps {
   articles: GuideArticle[];
 }
 
-interface ArticleComment {
-  id: string;
-  articleId: string;
-  author: string;
-  content: string;
-  timeAgo: string;
-}
-
 export default function GuidesView({ articles }: GuidesViewProps) {
   const [emailInput, setEmailInput] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string>(() => localStorage.getItem('sabor_salvador_user') || '');
-
-  // Modal Article Reader State
-  const [activeArticle, setActiveArticle] = useState<GuideArticle | null>(null);
-  
-  // Comments CRUD State
-  const [comments, setComments] = useState<ArticleComment[]>([
-    {
-      id: "comm-1",
-      articleId: "art-1",
-      author: "Juliana Santos (Chef)",
-      content: "Que artigo magnífico! De fato, a herança das baianas de acarajé estrutura todo o saber culinário do recôncavo.",
-      timeAgo: "Há 1 dia"
-    },
-    {
-      id: "comm-2",
-      articleId: "art-1",
-      author: "Rodrigo Lôbo",
-      content: "Uma aula de culinária e antropologia soteropolitana. Perfeito!",
-      timeAgo: "Há 6 horas"
-    },
-    {
-      id: "comm-3",
-      articleId: "art-2",
-      author: "Lívia Guedes",
-      content: "Eu já fui em duas dessas feiras de quintal. O amendoim e a cachaça regional são excelentes!",
-      timeAgo: "Há 2 dias"
-    }
-  ]);
-  
-  const [commentAuthor, setCommentAuthor] = useState('');
-  const [commentContent, setCommentContent] = useState('');
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState('');
 
   // Newsletter Flow
   const handleSubmitNewsletter = (e: React.FormEvent) => {
@@ -58,46 +17,6 @@ export default function GuidesView({ articles }: GuidesViewProps) {
     if (!emailInput.trim()) return;
     setSubscribed(true);
     setEmailInput('');
-  };
-
-  // Add Comment (Create)
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeArticle || !commentAuthor.trim() || !commentContent.trim()) return;
-
-    const newComment: ArticleComment = {
-      id: `comm-${Date.now()}`,
-      articleId: activeArticle.id,
-      author: commentAuthor,
-      content: commentContent,
-      timeAgo: "Agora mesmo"
-    };
-
-    localStorage.setItem('sabor_salvador_user', commentAuthor.trim());
-    setCurrentUser(commentAuthor.trim());
-
-    setComments(prev => [newComment, ...prev]);
-    setCommentAuthor('');
-    setCommentContent('');
-  };
-
-  // Delete Comment (Delete)
-  const handleDeleteComment = (id: string) => {
-    setComments(prev => prev.filter(c => c.id !== id));
-  };
-
-  // Start Edit (Setup Update)
-  const handleStartEdit = (comm: ArticleComment) => {
-    setEditingCommentId(comm.id);
-    setEditingContent(comm.content);
-  };
-
-  // Save Edit (Update)
-  const handleSaveEdit = (id: string) => {
-    if (!editingContent.trim()) return;
-    setComments(prev => prev.map(c => c.id === id ? { ...c, content: editingContent } : c));
-    setEditingCommentId(null);
-    setEditingContent('');
   };
 
   const mainArticle = articles[0] || null;
@@ -164,13 +83,13 @@ export default function GuidesView({ articles }: GuidesViewProps) {
                   <span>{mainArticle.readTime ?? '6 min leitura'}</span>
                 </span>
                 
-                <button 
-                  onClick={() => setActiveArticle(mainArticle)}
+                <Link 
+                  to={`/guias/${mainArticle.id}`}
                   className="bg-brand-primary-container hover:bg-brand-primary text-white font-bold text-xs px-5 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <span>Leia a Matéria Completa</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -216,13 +135,13 @@ export default function GuidesView({ articles }: GuidesViewProps) {
                       </p>
                     </div>
 
-                    <button 
-                      onClick={() => setActiveArticle(art)}
+                    <Link 
+                      to={`/guias/${art.id}`}
                       className="text-xs font-bold text-brand-primary hover:text-brand-primary-container flex items-center gap-1 cursor-pointer self-start group/btn"
                     >
                       <span>Ler artigo</span>
                       <ArrowRight className="w-3.5 h-3.5 transition group-hover/btn:translate-x-1" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -242,12 +161,12 @@ export default function GuidesView({ articles }: GuidesViewProps) {
                   <div className="flex gap-4 items-start">
                     <span className="font-display text-2xl font-extrabold text-brand-primary/20 leading-none col shrink-0">01</span>
                     <div>
-                      <h4 
-                        onClick={() => mainArticle && setActiveArticle(mainArticle)}
+                      <Link 
+                        to={`/guias/${mainArticle.id}`}
                         className="text-xs font-bold text-brand-on-surface hover:text-brand-primary transition cursor-pointer"
                       >
                         Novo pólo gastronômico na Barra aposta em fusão baiano-asiática
-                      </h4>
+                      </Link>
                       <p className="text-[10px] text-brand-outline mt-1 font-medium">Há 2 horas</p>
                     </div>
                   </div>
@@ -259,12 +178,12 @@ export default function GuidesView({ articles }: GuidesViewProps) {
                   <div className="flex gap-4 items-start">
                     <span className="font-display text-2xl font-extrabold text-brand-primary/20 leading-none col shrink-0">02</span>
                     <div>
-                      <h4 
-                        onClick={() => secondaryArticles[0] && setActiveArticle(secondaryArticles[0])}
+                      <Link 
+                        to={`/guias/${secondaryArticles[0]?.id}`}
                         className="text-xs font-bold text-brand-on-surface hover:text-brand-primary transition cursor-pointer"
                       >
                         Entrevista: O renascimento do axé indie nos pequenos palcos do Rio Vermelho
-                      </h4>
+                      </Link>
                       <p className="text-[10px] text-brand-outline mt-1 font-medium">Ontem</p>
                     </div>
                   </div>
@@ -318,179 +237,6 @@ export default function GuidesView({ articles }: GuidesViewProps) {
 
       </div>
 
-      {/* 4. MODAL DETAILED ARTICLE CORNER READER WITH COMMENTS CRUD */}
-      {activeArticle && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative text-left border border-brand-container-high animate-fade-in flex flex-col">
-            
-            {/* Sticky Header inside Scroll */}
-            <div className="sticky top-0 z-20 p-5 border-b border-brand-container flex justify-between items-center bg-white/95 backdrop-blur-xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-primary">
-                Lendo: Roteiro & Reportagens • {activeArticle.category}
-              </span>
-              <button 
-                onClick={() => {
-                  setActiveArticle(null);
-                  setEditingCommentId(null);
-                }}
-                className="p-1 px-2.5 bg-brand-surface rounded-full text-brand-outline hover:text-brand-primary font-bold text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Scrollable Content inside Modal */}
-            <div className="p-6 md:p-8 space-y-6 flex-grow overflow-y-auto">
-              {/* Photo */}
-              <div className="rounded-2xl overflow-hidden h-60 w-full relative shrink-0">
-                <img 
-                  src={activeArticle.imageUrl} 
-                  alt={activeArticle.title} 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 p-5 pt-12">
-                  <p className="text-[10px] uppercase font-bold text-brand-secondary-container">{activeArticle.date}</p>
-                  <h2 className="font-display text-lg md:text-xl font-extrabold text-white mt-1">
-                    {activeArticle.title}
-                  </h2>
-                </div>
-              </div>
-
-              {/* Author & Read metadata */}
-              <div className="flex gap-4 items-center text-xs text-brand-outline font-semibold border-b border-brand-surface pb-4">
-                <div className="w-8 h-8 rounded-full bg-brand-primary/15 text-brand-primary flex items-center justify-center font-bold">
-                  S
-                </div>
-                <div>
-                  <p className="text-brand-on-surface font-extrabold">Redação Sabor Salvador</p>
-                  <span>{activeArticle.readTime ?? '5 min'} leitura e sabedoria</span>
-                </div>
-              </div>
-
-              {/* Detailed description and paragraphs */}
-              <div className="text-xs leading-relaxed text-brand-on-surface-variant/90 space-y-4 font-medium whitespace-pre-line">
-                {getDetailedBody(activeArticle.id)}
-              </div>
-
-              {/* COMMENTS SECTION (CRUD PROCESSES) */}
-              <div className="border-t border-brand-container-highest pt-8 mt-4">
-                <h3 className="font-display text-sm font-extrabold text-brand-on-surface mb-6 flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-brand-primary" />
-                  <span>Comentários Comunitários ({comments.filter(c => c.articleId === activeArticle.id).length})</span>
-                </h3>
-
-                {/* Submit New Comment */}
-                <form onSubmit={handleAddComment} className="bg-brand-surface p-4 rounded-2xl border border-brand-outline-variant/60 space-y-3 mb-6">
-                  <h4 className="text-[10px] font-black uppercase text-brand-outline">Compartilhe sua percepção soteropolitana</h4>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-1 relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-outline" />
-                      <input 
-                        type="text" 
-                        required
-                        placeholder="Seu nome"
-                        value={commentAuthor}
-                        onChange={e => setCommentAuthor(e.target.value)}
-                        className="w-full bg-white border border-brand-outline-variant rounded-xl pl-9 pr-3 py-2 text-[11px] font-semibold focus:outline-none focus:border-brand-primary text-left"
-                      />
-                    </div>
-                    <div className="sm:col-span-2 relative">
-                      <input 
-                        type="text" 
-                        required
-                        placeholder="O que achou desta história baiana?"
-                        value={commentContent}
-                        onChange={e => setCommentContent(e.target.value)}
-                        className="w-full bg-white border border-brand-outline-variant rounded-xl px-4 py-2 text-[11px] font-semibold focus:outline-none focus:border-brand-primary text-left"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-1">
-                    <button
-                      type="submit"
-                      className="bg-brand-primary hover:bg-brand-primary-container text-white text-[11px] font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    >
-                      <Send className="w-3 h-3" />
-                      <span>Postar</span>
-                    </button>
-                  </div>
-                </form>
-
-                {/* Comments List Thread with full Edit/Delete actions */}
-                <div className="space-y-4">
-                  {comments.filter(c => c.articleId === activeArticle.id).length === 0 ? (
-                    <p className="text-[11px] text-brand-outline italic text-left">Nenhum comentário ainda. Seja o primeiro a escrever!</p>
-                  ) : (
-                    comments.filter(c => c.articleId === activeArticle.id).map(comm => (
-                      <div key={comm.id} className="p-4 rounded-2xl bg-white border border-brand-container-high relative">
-                        <div className="flex justify-between items-center mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-[10px] flex items-center justify-center shrink-0">
-                              {comm.author.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="text-[11px] font-extrabold text-brand-on-surface leading-tight">{comm.author}</span>
-                            <span className="text-[9px] text-brand-outline font-medium">{comm.timeAgo}</span>
-                          </div>
-
-                          <div className="flex gap-2">
-                            {currentUser === comm.author && (
-                              <button
-                                onClick={() => handleStartEdit(comm)}
-                                className="text-[9px] font-bold text-brand-outline hover:text-brand-primary"
-                              >
-                                Editar
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* If in edit state */}
-                        {editingCommentId === comm.id ? (
-                          <div className="mt-2 flex gap-2">
-                            <input 
-                              type="text"
-                              value={editingContent}
-                              onChange={e => setEditingContent(e.target.value)}
-                              className="flex-grow bg-brand-surface border border-brand-outline-variant p-1.5 px-3 rounded-lg text-xs font-semibold focus:outline-none"
-                            />
-                            <button
-                              onClick={() => handleSaveEdit(comm.id)}
-                              className="p-1 px-2.5 bg-emerald-500 text-white rounded-lg flex items-center gap-1 font-bold text-[10px]"
-                            >
-                              <Check className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-brand-on-surface-variant font-medium leading-relaxed italic text-left pl-8">
-                            "{comm.content}"
-                          </p>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-            {/* Modal Bottom control action */}
-            <div className="p-4 bg-brand-surface border-t border-brand-container flex justify-end">
-              <button
-                onClick={() => {
-                  setActiveArticle(null);
-                  setEditingCommentId(null);
-                }}
-                className="bg-brand-on-surface text-white text-xs font-bold py-2 px-5 rounded-xl cursor-pointer"
-              >
-                Concluir Leitura
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
 
     </div>
   );

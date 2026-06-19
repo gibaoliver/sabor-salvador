@@ -20,7 +20,6 @@ const CATEGORY_PRESETS = [
 export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRestaurant }: LoginViewProps) {
   // Global Toggle Mode
   const [isRegister, setIsRegister] = useState(false);
-  const [isAdminRegister, setIsAdminRegister] = useState(false);
 
   // Classicial Login States
   const [email, setEmail] = useState('');
@@ -28,12 +27,6 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [recoveryMessage, setRecoveryMessage] = useState('');
-
-  // Admin Registration States
-  const [regEmail, setRegEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [showRegPassword, setShowRegPassword] = useState(false);
 
   // Restaurant Registration States
   const [restName, setRestName] = useState('');
@@ -104,71 +97,7 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
       return;
     }
 
-    setErrorMessage('E-mail ou senha incorretos! Se você é um administrador, por favor crie sua conta.');
-  };
-
-  // Handle Admin Register submission
-  const handleAdminRegisterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage('');
-    setRecoveryMessage('');
-
-    if (!regEmail.trim() || !regPassword.trim() || !regConfirmPassword.trim()) {
-      setErrorMessage('Por favor, preencha todos os campos!');
-      return;
-    }
-
-    if (regPassword !== regConfirmPassword) {
-      setErrorMessage('As senhas não coincidem!');
-      return;
-    }
-
-    if (regPassword.length < 6) {
-      setErrorMessage('A senha deve ter pelo menos 6 caracteres!');
-      return;
-    }
-
-    const emailLower = regEmail.trim().toLowerCase();
-
-    if (emailLower === 'admin@saborsalvador.com') {
-      setErrorMessage('Este e-mail já está em uso.');
-      return;
-    }
-
-    let admins: any[] = [];
-    const adminsJson = localStorage.getItem('sabor_salvador_admins');
-    if (adminsJson) {
-      try {
-        admins = JSON.parse(adminsJson);
-        if (!Array.isArray(admins)) {
-          admins = [];
-        }
-      } catch (e) {
-        admins = [];
-      }
-    }
-
-    const exists = admins.some(a => a.email.toLowerCase() === emailLower);
-    if (exists) {
-      setErrorMessage('Este e-mail de administrador já está cadastrado!');
-      return;
-    }
-
-    admins.push({
-      email: emailLower,
-      password: regPassword
-    });
-
-    localStorage.setItem('sabor_salvador_admins', JSON.stringify(admins));
-
-    setRecoveryMessage('Conta de administrador criada com sucesso! Faça login abaixo.');
-    setEmail(regEmail);
-    setPassword('');
-    setIsAdminRegister(false);
-    
-    setRegEmail('');
-    setRegPassword('');
-    setRegConfirmPassword('');
+    setErrorMessage('E-mail ou senha incorretos! Verifique suas credenciais no Supabase.');
   };
 
   const handleShortcutLogin = () => {
@@ -276,16 +205,12 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
           <h2 className="font-display text-2xl md:text-3xl font-extrabold text-brand-primary tracking-tight">
             {isRegister 
               ? 'Cadastre seu Estabelecimento' 
-              : isAdminRegister 
-              ? 'Criar Conta de Admin' 
               : 'Sabor Salvador'}
           </h2>
           <p className="text-xs text-brand-on-surface-variant mt-1.5 font-semibold">
             {isRegister 
               ? 'Insira os dados do seu restaurante e divulgue seu menu para milhares de clientes baianos e turistas.' 
-              : isAdminRegister
-              ? 'Cadastre um novo login e senha para gerenciar o painel administrativo.'
-              : 'Acesse o painel do proprietário para editar cardápios e avaliações.'}
+              : 'Acesse o painel do administrador para gerenciar o site.'}
           </p>
         </div>
 
@@ -303,95 +228,7 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
         )}
 
         {/* RENDER FORMS */}
-        {isAdminRegister ? (
-          /* ================= ADMIN REGISTER FORM ================= */
-          <div>
-            <form onSubmit={handleAdminRegisterSubmit} className="space-y-5">
-              <div>
-                <label className="block text-[11px] font-bold text-brand-outline uppercase mb-1.5">
-                  E-mail do Administrador
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-outline" />
-                  <input 
-                    type="email"
-                    placeholder="admin@saborsalvador.com"
-                    value={regEmail}
-                    onChange={e => setRegEmail(e.target.value)}
-                    required
-                    className="w-full bg-brand-surface border border-brand-outline-variant rounded-xl pl-10 pr-4 py-3 text-xs font-medium text-brand-on-surface focus:outline-none focus:border-brand-primary"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-brand-outline uppercase mb-1.5">
-                  Senha de Acesso
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-outline" />
-                  <input 
-                    type={showRegPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={regPassword}
-                    onChange={e => setRegPassword(e.target.value)}
-                    required
-                    className="w-full bg-brand-surface border border-brand-outline-variant rounded-xl pl-10 pr-10 py-3 text-xs font-medium text-brand-on-surface focus:outline-none focus:border-brand-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowRegPassword(!showRegPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-outline hover:text-brand-primary"
-                  >
-                    {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-brand-outline uppercase mb-1.5">
-                  Confirmar Senha
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-outline" />
-                  <input 
-                    type={showRegPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={regConfirmPassword}
-                    onChange={e => setRegConfirmPassword(e.target.value)}
-                    required
-                    className="w-full bg-brand-surface border border-brand-outline-variant rounded-xl pl-10 pr-10 py-3 text-xs font-medium text-brand-on-surface focus:outline-none focus:border-brand-primary"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-brand-primary-container hover:bg-brand-primary text-white font-bold text-sm py-3.5 rounded-xl transition-all shadow-md shadow-brand-primary-container/20 cursor-pointer text-center mt-2 flex items-center justify-center gap-1.5"
-              >
-                <span>Criar Conta de Administrador</span>
-                <Check className="w-4 h-4" />
-              </button>
-            </form>
-
-            <div className="relative flex py-4 items-center">
-              <div className="flex-grow border-t border-brand-outline-variant/60"></div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsAdminRegister(false);
-                setErrorMessage('');
-                setRecoveryMessage('');
-              }}
-              className="w-full bg-white border border-brand-outline hover:border-brand-primary text-brand-on-surface hover:text-brand-primary font-bold text-xs py-3 rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Voltar para o Login</span>
-            </button>
-          </div>
-        ) : !isRegister ? (
+        {!isRegister ? (
           /* ================= LOGIN FORM ================= */
           <div>
             <form onSubmit={handleLoginSubmit} className="space-y-5">
@@ -461,23 +298,6 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
               </button>
             </form>
 
-            <div className="relative flex py-4 items-center">
-              <div className="flex-grow border-t border-brand-outline-variant/60"></div>
-              <span className="flex-shrink mx-4 text-brand-outline text-[10px] uppercase font-bold tracking-widest">Novo por aqui?</span>
-              <div className="flex-grow border-t border-brand-outline-variant/60"></div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsAdminRegister(true);
-                setErrorMessage('');
-                setRecoveryMessage('');
-              }}
-              className="w-full bg-white border border-brand-outline hover:border-brand-primary text-brand-on-surface hover:text-brand-primary font-bold text-xs py-3 rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
-            >
-              <span>Criar Conta de Administrador</span>
-            </button>
           </div>
         ) : (
           /* ================= REGISTER NEW RESTAURANT FORM ================= */
