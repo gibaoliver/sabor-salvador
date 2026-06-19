@@ -65,7 +65,7 @@ export default function GuidesView({ articles }: GuidesViewProps) {
             <div className="lg:w-1/2 p-8 md:p-12 flex flex-col justify-between text-left">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-primary mb-3 block">
-                  {mainArticle.category} • {mainArticle.date}
+                  {mainArticle.date}
                 </span>
 
                 <h2 className="font-display text-2xl md:text-3.5xl font-extrabold text-brand-on-surface leading-tight mb-4 group-hover:text-brand-primary transition">
@@ -119,9 +119,6 @@ export default function GuidesView({ articles }: GuidesViewProps) {
                       className="w-full h-full object-cover group-hover:scale-102 transition" 
                       referrerPolicy="no-referrer"
                     />
-                    <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-[9px] font-bold text-brand-on-surface px-3 py-1 rounded-xl shadow-xs">
-                      {art.category}
-                    </span>
                   </div>
 
                   <div className="p-6 md:p-8 flex-grow flex flex-col justify-between text-left">

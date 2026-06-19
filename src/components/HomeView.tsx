@@ -9,6 +9,7 @@ interface HomeViewProps {
   setSearchFood: (term: string) => void;
   setSearchBairro: (term: string) => void;
   setSelectedCategory: (cat: string) => void;
+  categories?: string[];
 }
 
 export default function HomeView({
@@ -16,7 +17,8 @@ export default function HomeView({
   onSelectRestaurant,
   setSearchFood,
   setSearchBairro,
-  setSelectedCategory
+  setSelectedCategory,
+  categories = []
 }: HomeViewProps) {
   const navigate = useNavigate();
   const [foodInput, setFoodInput] = useState('');
@@ -24,15 +26,23 @@ export default function HomeView({
 
   const featuredList = restaurants.filter(r => r.featured);
   
-  // Hardcoded Categories from Screen 1 image
-  const categories = [
-    { label: 'Acarajé', emoji: '🧆' },
-    { label: 'Moqueca', emoji: '🍲' },
-    { label: 'Hamburgueria', emoji: '🍔' },
-    { label: 'Sushi', emoji: '🍣' },
-    { label: 'Barzinho', emoji: '🍹' },
-    { label: 'Café', emoji: '☕' }
-  ];
+  // Emojis mapping for default categories
+  const EMOJI_MAP: Record<string, string> = {
+    'Acarajé': '🧆', 'Moqueca': '🍲', 'Hamburgueria': '🍔', 'Sushi': '🍣',
+    'Barzinho': '🍹', 'Café': '☕', 'Axé': '🥁', 'Samba': '🎤', 'Forró': '🪗',
+    'Jazz': '🎷', 'Cultura': '🎭', 'Gastronomia': '🍽️', 'Eventos': '🎉'
+  };
+
+  const displayCategories = categories.length > 0 
+    ? categories.slice(0, 6).map(c => ({ label: c, emoji: EMOJI_MAP[c] || '🏷️' }))
+    : [
+      { label: 'Acarajé', emoji: '🧆' },
+      { label: 'Moqueca', emoji: '🍲' },
+      { label: 'Hamburgueria', emoji: '🍔' },
+      { label: 'Sushi', emoji: '🍣' },
+      { label: 'Barzinho', emoji: '🍹' },
+      { label: 'Café', emoji: '☕' }
+    ];
 
   const handleSearchBtn = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,17 +125,12 @@ export default function HomeView({
       <section className="py-8 bg-white border-b border-brand-container-highest">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-wrap justify-center items-center gap-3">
-            {categories.map((cat) => {
-              const isActive = cat.label === 'Moqueca'; // Show default highlight as requested in screenshot Screen 1
+            {displayCategories.map((cat) => {
               return (
                 <button
                   key={cat.label}
                   onClick={() => handleCategoryClick(cat.label)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${
-                    isActive 
-                      ? 'bg-brand-primary-container text-white border-brand-primary-container shadow-sm hover:opacity-95' 
-                      : 'bg-white text-brand-on-surface-variant border-brand-outline-variant hover:bg-brand-surface hover:text-brand-primary'
-                  }`}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all border bg-white text-brand-on-surface-variant border-brand-outline-variant hover:bg-brand-surface hover:text-brand-primary"
                 >
                   <span className="text-base">{cat.emoji}</span>
                   <span>{cat.label}</span>

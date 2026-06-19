@@ -226,6 +226,78 @@ export async function deleteArticleFromSupabase(articleId: string): Promise<bool
   return true;
 }
 
+// Fetch all categories
+export async function getCategoriesFromSupabase(): Promise<string[] | null> {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('name')
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching categories from Supabase:', error);
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      return null;
+    }
+    return null;
+  }
+
+  return (data || []).map((row: any) => row.name);
+}
+
+// Add a new category
+export async function upsertCategoryToSupabase(categoryName: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('categories')
+    .upsert({ name: categoryName }, { onConflict: 'name' });
+
+  if (error) {
+    console.error(`Error saving category ${categoryName} to Supabase:`, error);
+    return false;
+  }
+  return true;
+}
+
+// Delete a category
+export async function deleteCategoryFromSupabase(categoryName: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('name', categoryName);
+
+  if (error) {
+    console.error(`Error deleting category ${categoryName} from Supabase:`, error);
+    return false;
+  }
+  return true;
+}
+
+// Upload Image to Supabase Storage
+export async function uploadImageToSupabase(file: File): Promise<string | null> {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('uploads')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      console.error('Error uploading image to Supabase:', uploadError);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('uploads')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Unexpected error uploading image:', error);
+    return null;
+  }
+}
+
 // Seeds the Supabase database with initial values
 export async function seedSupabaseInitialData(): Promise<{ success: boolean; message: string }> {
   try {
@@ -251,6 +323,15 @@ export async function seedSupabaseInitialData(): Promise<{ success: boolean; mes
       if (!ok) {
         return { success: false, message: `Erro ao enviar dados do artigo: ${art.title}` };
       }
+    }
+
+    // 4. Send default categories
+    const defaultCategories = [
+      'Acarajé', 'Moqueca', 'Hamburgueria', 'Sushi', 'Barzinho', 'Café',
+      'Axé', 'Samba', 'Forró', 'Jazz', 'Cultura', 'Gastronomia', 'Eventos'
+    ];
+    for (const cat of defaultCategories) {
+      await upsertCategoryToSupabase(cat);
     }
 
     return { 
@@ -315,10 +396,17 @@ CREATE TABLE IF NOT EXISTS articles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 4. Habilitar RLS (Row Level Security) e Criar Políticas de Acesso Público Total
+-- 4. Criar tabela de categorias
+CREATE TABLE IF NOT EXISTS categories (
+  name TEXT PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- 5. Habilitar RLS (Row Level Security) e Criar Políticas de Acesso Público Total
 ALTER TABLE restaurants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para Restaurants
 DROP POLICY IF EXISTS "Permitir leitura pública de restaurantes" ON restaurants;
@@ -352,4 +440,22 @@ CREATE POLICY "Permitir leitura pública de artigos" ON articles FOR SELECT USIN
 CREATE POLICY "Permitir inserção pública de artigos" ON articles FOR INSERT WITH CHECK (true);
 CREATE POLICY "Permitir atualização pública de artigos" ON articles FOR UPDATE USING (true);
 CREATE POLICY "Permitir exclusão pública de artigos" ON articles FOR DELETE USING (true);
+
+-- Políticas para Categories
+DROP POLICY IF EXISTS "Permitir leitura pública de categorias" ON categories;
+DROP POLICY IF EXISTS "Permitir inserção pública de categorias" ON categories;
+DROP POLICY IF EXISTS "Permitir exclusão pública de categorias" ON categories;
+
+CREATE POLICY "Permitir leitura pública de categorias" ON categories FOR SELECT USING (true);
+CREATE POLICY "Permitir inserção pública de categorias" ON categories FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir exclusão pública de categorias" ON categories FOR DELETE USING (true);
+
+-- 6. Criar Bucket de Storage (uploads)
+INSERT INTO storage.buckets (id, name, public) VALUES ('uploads', 'uploads', true) ON CONFLICT (id) DO NOTHING;
+
+-- Políticas para o Bucket "uploads"
+CREATE POLICY "Permitir leitura pública de uploads" ON storage.objects FOR SELECT USING (bucket_id = 'uploads');
+CREATE POLICY "Permitir inserção pública de uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'uploads');
+CREATE POLICY "Permitir exclusão pública de uploads" ON storage.objects FOR DELETE USING (bucket_id = 'uploads');
+CREATE POLICY "Permitir update público de uploads" ON storage.objects FOR UPDATE USING (bucket_id = 'uploads');
 `;

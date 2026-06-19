@@ -121,7 +121,7 @@ export default function GuideDetailView({ articles }: GuideDetailViewProps) {
         <div className="p-4 bg-brand-surface border-b border-brand-container flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2 text-brand-primary text-[10px] font-bold uppercase tracking-widest">
             <BookOpen className="w-4 h-4" />
-            <span>Lendo: Roteiro & Reportagens • {article.category}</span>
+            <span>Lendo: Roteiro & Reportagens</span>
           </div>
           <Link to="/guias" className="text-brand-outline hover:text-brand-primary p-1 bg-white rounded-full transition">
             <X className="w-5 h-5" />

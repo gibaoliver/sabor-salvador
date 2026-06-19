@@ -11,6 +11,7 @@ interface RestaurantListViewProps {
   setSearchBairro: (term: string) => void;
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
+  categories?: string[];
 }
 
 export default function RestaurantListView({
@@ -21,7 +22,8 @@ export default function RestaurantListView({
   searchBairro,
   setSearchBairro,
   selectedCategory,
-  setSelectedCategory
+  setSelectedCategory,
+  categories = []
 }: RestaurantListViewProps) {
   const [bairroFilter, setBairroFilter] = useState<'Todas' | 'Rio Vermelho' | 'Barra' | 'Pelourinho' | 'Pituba'>('Todas');
   const [priceFilter, setPriceFilter] = useState<'Todas' | '$' | '$$' | '$$$'>('Todas');
@@ -132,12 +134,18 @@ export default function RestaurantListView({
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="Todas">Todas as categorias</option>
-                <option value="Acarajé">Acarajé</option>
-                <option value="Moqueca">Moqueca</option>
-                <option value="Hamburgueria">Hamburgueria</option>
-                <option value="Sushi">Sushi</option>
-                <option value="Barzinho">Barzinho</option>
-                <option value="Café">Café</option>
+                {categories.length > 0 ? (
+                  categories.map(c => <option key={c} value={c}>{c}</option>)
+                ) : (
+                  <>
+                    <option value="Acarajé">Acarajé</option>
+                    <option value="Moqueca">Moqueca</option>
+                    <option value="Hamburgueria">Hamburgueria</option>
+                    <option value="Sushi">Sushi</option>
+                    <option value="Barzinho">Barzinho</option>
+                    <option value="Café">Café</option>
+                  </>
+                )}
               </select>
             </div>
 

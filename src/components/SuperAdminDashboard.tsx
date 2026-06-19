@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { 
-  LayoutDashboard, Store, Calendar, BookOpen, Plus, Edit2, Trash2, Tags, Image, DollarSign, Clock, MapPin, Phone, X
+  LayoutDashboard, Store, Calendar, BookOpen, Plus, Edit2, Trash2, Tags, Image as ImageIcon, DollarSign, Clock, MapPin, Phone, X, Upload
 } from 'lucide-react';
-import { Restaurant, Event, GuideArticle } from '../types';
+import { Restaurant, Event, GuideArticle, Dish } from '../types';
+import { uploadImageToSupabase } from '../supabaseService';
 
 interface SuperAdminDashboardProps {
   restaurants: Restaurant[];
@@ -37,7 +38,16 @@ export default function SuperAdminDashboard({
   const [restCategory, setRestCategory] = useState(categories[0] || '');
   const [restNeighborhood, setRestNeighborhood] = useState<'Rio Vermelho' | 'Barra' | 'Pelourinho' | 'Pituba'>('Rio Vermelho');
   const [restImageUrl, setRestImageUrl] = useState('');
+  const [restImageFile, setRestImageFile] = useState<File | null>(null);
   const [restDescription, setRestDescription] = useState('');
+  const [restDishes, setRestDishes] = useState<Dish[]>([]);
+  const [isSavingRest, setIsSavingRest] = useState(false);
+
+  // -- Dish Form State --
+  const [newDishName, setNewDishName] = useState('');
+  const [newDishDesc, setNewDishDesc] = useState('');
+  const [newDishPrice, setNewDishPrice] = useState('');
+  const [newDishFile, setNewDishFile] = useState<File | null>(null);
 
   // -- Event Form State --
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -57,7 +67,9 @@ export default function SuperAdminDashboard({
   const [artCategory, setArtCategory] = useState(categories[0] || '');
   const [artDate, setArtDate] = useState('');
   const [artImageUrl, setArtImageUrl] = useState('');
+  const [artImageFile, setArtImageFile] = useState<File | null>(null);
   const [artContent, setArtContent] = useState('');
+  const [isSavingArt, setIsSavingArt] = useState(false);
 
   // -- Category Form State --
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -69,7 +81,42 @@ export default function SuperAdminDashboard({
     setRestCategory(categories[0] || '');
     setRestNeighborhood('Rio Vermelho');
     setRestImageUrl('');
+    setRestImageFile(null);
     setRestDescription('');
+    setRestDishes([]);
+    resetDishForm();
+  };
+
+  const resetDishForm = () => {
+    setNewDishName('');
+    setNewDishDesc('');
+    setNewDishPrice('');
+    setNewDishFile(null);
+  };
+
+  const handleAddDish = async () => {
+    if (!newDishName || !newDishPrice) return;
+    
+    let uploadedDishUrl = '';
+    if (newDishFile) {
+      const url = await uploadImageToSupabase(newDishFile);
+      if (url) uploadedDishUrl = url;
+    }
+
+    const newDish: Dish = {
+      id: `dish-${Date.now()}`,
+      name: newDishName,
+      description: newDishDesc,
+      price: parseFloat(newDishPrice.replace(',', '.')) || 0,
+      imageUrl: uploadedDishUrl
+    };
+
+    setRestDishes(prev => [...prev, newDish]);
+    resetDishForm();
+  };
+
+  const handleRemoveDish = (dishId: string) => {
+    setRestDishes(prev => prev.filter(d => d.id !== dishId));
   };
 
   const startEditRest = (r: Restaurant) => {
@@ -78,23 +125,39 @@ export default function SuperAdminDashboard({
     setRestCategory(r.category);
     setRestNeighborhood(r.neighborhood);
     setRestImageUrl(r.imageUrl);
+    setRestImageFile(null);
     setRestDescription(r.description);
+    setRestDishes(r.dishes || []);
+    resetDishForm();
   };
 
-  const saveRestaurant = () => {
+  const saveRestaurant = async () => {
     if (!restName) return;
+    setIsSavingRest(true);
+    
+    let finalImageUrl = restImageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
+    if (restImageFile) {
+      const uploadedUrl = await uploadImageToSupabase(restImageFile);
+      if (uploadedUrl) finalImageUrl = uploadedUrl;
+    }
+
     const baseId = `rest-${Date.now()}`;
     const newRest: Restaurant = editingRestaurant ? { ...editingRestaurant } : {
       id: baseId, name: restName, rating: 5.0, reviewsCount: 0,
       neighborhood: restNeighborhood, priceRange: '$$', category: restCategory || categories[0],
-      imageUrl: restImageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
-      description: restDescription, address: '', phone: '', closesAt: '23:00', dishes: [], reviews: [], featured: true
+      imageUrl: finalImageUrl,
+      description: restDescription, address: '', phone: '', closesAt: '23:00', dishes: restDishes, reviews: [], featured: true
     };
-    newRest.name = restName; newRest.category = restCategory; newRest.neighborhood = restNeighborhood;
-    if (restImageUrl) newRest.imageUrl = restImageUrl;
+    newRest.name = restName; 
+    newRest.category = restCategory; 
+    newRest.neighborhood = restNeighborhood;
+    newRest.imageUrl = finalImageUrl;
     newRest.description = restDescription;
+    newRest.dishes = restDishes;
+    
     if (editingRestaurant) onUpdateRestaurant(newRest); else onAddRestaurant(newRest);
     resetRestForm();
+    setIsSavingRest(false);
   };
 
   // ---- EVENT METHODS ----
@@ -129,27 +192,35 @@ export default function SuperAdminDashboard({
   // ---- ARTICLE METHODS ----
   const resetArticleForm = () => {
     setEditingArticle(null);
-    setArtTitle(''); setArtSummary(''); setArtCategory(categories[0] || ''); setArtDate(''); setArtImageUrl(''); setArtContent('');
+    setArtTitle(''); setArtSummary(''); setArtCategory(categories[0] || ''); setArtDate(''); setArtImageUrl(''); setArtImageFile(null); setArtContent('');
   };
 
   const startEditArticle = (a: GuideArticle) => {
     setEditingArticle(a);
-    setArtTitle(a.title); setArtSummary(a.summary); setArtCategory(a.category); setArtDate(a.date); setArtImageUrl(a.imageUrl); setArtContent(a.content || '');
+    setArtTitle(a.title); setArtSummary(a.summary); setArtCategory(a.category); setArtDate(a.date); setArtImageUrl(a.imageUrl); setArtImageFile(null); setArtContent(a.content || '');
   };
 
-  const saveArticle = () => {
+  const saveArticle = async () => {
     if (!artTitle) return;
+    setIsSavingArt(true);
+    let finalImageUrl = artImageUrl || 'https://images.unsplash.com/photo-1481277542470-605612bd2d61?auto=format&fit=crop&w=800&q=80';
+    if (artImageFile) {
+      const uploadedUrl = await uploadImageToSupabase(artImageFile);
+      if (uploadedUrl) finalImageUrl = uploadedUrl;
+    }
+
     const baseId = `art-${Date.now()}`;
     const newArt: GuideArticle = editingArticle ? { ...editingArticle } : {
-      id: baseId, title: artTitle, summary: artSummary, category: artCategory || categories[0],
+      id: baseId, title: artTitle, summary: artSummary, category: 'Geral', // Default hidden category
       date: artDate || new Date().toLocaleDateString('pt-BR'),
-      imageUrl: artImageUrl || 'https://images.unsplash.com/photo-1481277542470-605612bd2d61?auto=format&fit=crop&w=800&q=80',
+      imageUrl: finalImageUrl,
       readTime: '5 min', content: artContent
     };
-    newArt.title = artTitle; newArt.summary = artSummary; newArt.category = artCategory;
-    if (artDate) newArt.date = artDate; if (artImageUrl) newArt.imageUrl = artImageUrl; newArt.content = artContent;
+    newArt.title = artTitle; newArt.summary = artSummary; newArt.category = 'Geral';
+    if (artDate) newArt.date = artDate; newArt.imageUrl = finalImageUrl; newArt.content = artContent;
     if (editingArticle) onUpdateArticle(newArt); else onAddArticle(newArt);
     resetArticleForm();
+    setIsSavingArt(false);
   };
 
   return (
@@ -342,16 +413,76 @@ export default function SuperAdminDashboard({
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">URL da Imagem</label>
-                      <input type="text" value={restImageUrl} onChange={e => setRestImageUrl(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Foto do Restaurante (Capa)</label>
+                      <div className="flex items-center gap-3">
+                        <label className="flex-1 cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-indigo-500 rounded-xl px-4 py-2 flex items-center justify-center gap-2 transition">
+                          <Upload className="w-4 h-4 text-indigo-400" />
+                          <span className="text-xs text-slate-300 font-medium">{restImageFile ? restImageFile.name : 'Anexar nova foto'}</span>
+                          <input type="file" className="hidden" accept="image/*" onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setRestImageFile(e.target.files[0]);
+                              setRestImageUrl(''); // clear URL if new file uploaded
+                            }
+                          }} />
+                        </label>
+                      </div>
+                      {restImageUrl && !restImageFile && <p className="text-[10px] text-emerald-400 mt-1 truncate">Foto atual: {restImageUrl}</p>}
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Descrição</label>
                       <textarea value={restDescription} onChange={e => setRestDescription(e.target.value)} rows={3} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"></textarea>
                     </div>
-                    <div className="pt-2 flex gap-3">
-                      {editingRestaurant && <button onClick={resetRestForm} className="flex-1 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition">Cancelar</button>}
-                      <button onClick={saveRestaurant} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20">Salvar</button>
+
+                    {/* PRATOS / CARDÁPIO */}
+                    <div className="mt-6 pt-6 border-t border-slate-800">
+                      <h4 className="text-xs font-bold text-white mb-4">Cardápio do Restaurante ({restDishes.length} pratos)</h4>
+                      
+                      <div className="space-y-2 mb-4">
+                        {restDishes.map((dish) => (
+                          <div key={dish.id} className="flex justify-between items-center bg-[#0B1121] p-3 rounded-xl border border-slate-800">
+                            <div className="flex items-center gap-3">
+                              {dish.imageUrl ? (
+                                <img src={dish.imageUrl} className="w-10 h-10 object-cover rounded-lg" alt={dish.name} />
+                              ) : (
+                                <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center"><ImageIcon className="w-4 h-4 text-slate-500"/></div>
+                              )}
+                              <div>
+                                <p className="text-xs font-bold text-white">{dish.name}</p>
+                                <p className="text-[10px] text-slate-400">R$ {dish.price.toFixed(2)}</p>
+                              </div>
+                            </div>
+                            <button onClick={() => handleRemoveDish(dish.id)} className="text-slate-500 hover:text-red-400 transition">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="bg-[#1F2937]/50 p-4 rounded-xl border border-slate-800/50 space-y-3">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Adicionar Novo Prato</p>
+                        <input type="text" placeholder="Nome do prato" value={newDishName} onChange={e => setNewDishName(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                        <div className="flex gap-2">
+                          <input type="text" placeholder="Preço (Ex: 45.90)" value={newDishPrice} onChange={e => setNewDishPrice(e.target.value)} className="w-1/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                          <input type="text" placeholder="Breve descrição" value={newDishDesc} onChange={e => setNewDishDesc(e.target.value)} className="w-2/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                        </div>
+                        <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 hover:border-indigo-500 rounded-xl px-3 py-2 flex items-center justify-center gap-2 transition text-xs text-slate-300">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{newDishFile ? newDishFile.name : 'Anexar foto do prato'}</span>
+                          <input type="file" className="hidden" accept="image/*" onChange={e => {
+                            if (e.target.files && e.target.files[0]) setNewDishFile(e.target.files[0]);
+                          }} />
+                        </label>
+                        <button onClick={handleAddDish} className="w-full py-2 bg-slate-800 text-indigo-400 rounded-xl text-xs font-bold hover:bg-slate-700 transition">
+                          + Incluir Prato
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex gap-3 mt-4 border-t border-slate-800">
+                      {editingRestaurant && <button onClick={resetRestForm} className="flex-1 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition" disabled={isSavingRest}>Cancelar</button>}
+                      <button onClick={saveRestaurant} disabled={isSavingRest} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50">
+                        {isSavingRest ? 'Salvando...' : 'Salvar Restaurante'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -409,27 +540,34 @@ export default function SuperAdminDashboard({
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Categoria</label>
-                        <select value={artCategory} onChange={e => setArtCategory(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
-                          {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
-                      <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Data Publicação</label>
                         <input type="text" placeholder="Ex: 20 Out 2024" value={artDate} onChange={e => setArtDate(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none" />
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">URL Imagem Capa</label>
-                      <input type="text" value={artImageUrl} onChange={e => setArtImageUrl(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none" />
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Foto de Capa</label>
+                        <div className="flex items-center gap-3 h-full">
+                          <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-emerald-500 rounded-xl px-4 h-full py-1.5 flex items-center justify-center gap-2 transition text-xs text-slate-300">
+                            <Upload className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span className="truncate">{artImageFile ? artImageFile.name : 'Anexar imagem'}</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={e => {
+                              if (e.target.files && e.target.files[0]) {
+                                setArtImageFile(e.target.files[0]);
+                                setArtImageUrl('');
+                              }
+                            }} />
+                          </label>
+                        </div>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Conteúdo Completo</label>
                       <textarea value={artContent} onChange={e => setArtContent(e.target.value)} rows={4} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"></textarea>
                     </div>
                     <div className="pt-2 flex gap-3">
-                      {editingArticle && <button onClick={resetArticleForm} className="flex-1 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition">Cancelar</button>}
-                      <button onClick={saveArticle} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/20">Salvar Notícia</button>
+                      {editingArticle && <button onClick={resetArticleForm} className="flex-1 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition" disabled={isSavingArt}>Cancelar</button>}
+                      <button onClick={saveArticle} disabled={isSavingArt} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50">
+                        {isSavingArt ? 'Salvando...' : 'Salvar Notícia'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -445,8 +583,6 @@ export default function SuperAdminDashboard({
                         <div>
                           <p className="text-sm font-bold text-white mb-0.5 line-clamp-1">{a.title}</p>
                           <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                            <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">{a.category}</span>
-                            <span>•</span>
                             <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {a.date}</span>
                           </div>
                         </div>

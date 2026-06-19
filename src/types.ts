@@ -3,6 +3,7 @@ export interface Dish {
   name: string;
   description: string;
   price: number;
+  imageUrl?: string;
 }
 
 export interface Review {

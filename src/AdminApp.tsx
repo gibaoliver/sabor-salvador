@@ -13,6 +13,9 @@ import {
   getArticlesFromSupabase,
   upsertArticleToSupabase,
   deleteArticleFromSupabase,
+  getCategoriesFromSupabase,
+  upsertCategoryToSupabase,
+  deleteCategoryFromSupabase,
   seedSupabaseInitialData 
 } from './supabaseService';
 
@@ -49,6 +52,7 @@ export default function AdminApp() {
       const supRests = await getRestaurantsFromSupabase();
       const supEvents = await getEventsFromSupabase();
       const supArticles = await getArticlesFromSupabase();
+      const supCategories = await getCategoriesFromSupabase();
 
       if (supRests === null || supEvents === null) {
         setDbTablesMissing(true);
@@ -63,6 +67,9 @@ export default function AdminApp() {
         if (supArticles && supArticles.length > 0) {
           setArticles(supArticles);
         }
+        if (supCategories && supCategories.length > 0) {
+          setCategories(supCategories);
+        }
       }
     } catch (err) {
       console.error('Error fetching Supabase data on mount:', err);
@@ -74,6 +81,32 @@ export default function AdminApp() {
 
   useEffect(() => {
     loadSupabaseData();
+
+    // Check auth session
+    import('./supabaseClient').then(({ supabase }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          const isSuper = session.user.email === 'admin@saborsalvador.com' || session.user.user_metadata?.is_super_admin === true;
+          setIsLoggedIn(true);
+          setIsSuperAdmin(isSuper);
+          setActiveTab('admin');
+        }
+      });
+
+      // Listen for auth changes
+      supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          const isSuper = session.user.email === 'admin@saborsalvador.com' || session.user.user_metadata?.is_super_admin === true;
+          setIsLoggedIn(true);
+          setIsSuperAdmin(isSuper);
+          setActiveTab('admin');
+        } else {
+          setIsLoggedIn(false);
+          setIsSuperAdmin(false);
+          setActiveTab('login');
+        }
+      });
+    });
   }, []);
 
   const handleAddEvent = async (newEvent: Event) => {
@@ -115,6 +148,19 @@ export default function AdminApp() {
     setRestaurants(prev => prev.filter(r => r.id !== restId));
   };
 
+  const handleAddCategory = async (cat: string) => {
+    setCategories(prev => {
+      if (!prev.includes(cat)) return [...prev, cat];
+      return prev;
+    });
+    await upsertCategoryToSupabase(cat);
+  };
+
+  const handleDeleteCategory = async (cat: string) => {
+    setCategories(prev => prev.filter(c => c !== cat));
+    await deleteCategoryFromSupabase(cat);
+  };
+
   const handleLoginSuccess = (isSuperAdminLogin = false) => {
     setIsLoggedIn(true);
     setIsSuperAdmin(isSuperAdminLogin);
@@ -137,12 +183,14 @@ export default function AdminApp() {
         </span>
         {isLoggedIn && (
           <button 
-            onClick={() => {
+            onClick={async () => {
+              const { supabase } = await import('./supabaseClient');
+              await supabase.auth.signOut();
               setIsLoggedIn(false);
               setIsSuperAdmin(false);
               setActiveTab('login');
             }}
-            className="text-sm font-bold text-brand-primary hover:text-brand-primary-container"
+            className="text-sm font-bold text-brand-primary hover:text-brand-primary-container cursor-pointer"
           >
             Sair
           </button>
@@ -172,8 +220,8 @@ export default function AdminApp() {
               onUpdateArticle={handleUpdateArticle}
               onDeleteArticle={handleDeleteArticle}
               categories={categories}
-              onAddCategory={(cat) => setCategories(prev => [...prev, cat])}
-              onDeleteCategory={(cat) => setCategories(prev => prev.filter(c => c !== cat))}
+              onAddCategory={handleAddCategory}
+              onDeleteCategory={handleDeleteCategory}
             />
           ) : (
             <AdminDashboard 

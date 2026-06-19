@@ -14,7 +14,8 @@ import {
   getRestaurantsFromSupabase, 
   getEventsFromSupabase, 
   getArticlesFromSupabase,
-  upsertRestaurantToSupabase
+  upsertRestaurantToSupabase,
+  getCategoriesFromSupabase
 } from './supabaseService';
 
 import { 
@@ -61,6 +62,7 @@ export default function App() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>(INITIAL_RESTAURANTS);
   const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS);
   const [articles, setArticles] = useState<GuideArticle[]>(INITIAL_ARTICLES);
+  const [categories, setCategories] = useState<string[]>([]);
 
   // Search routing state
   const [searchFood, setSearchFood] = useState('');
@@ -73,6 +75,7 @@ export default function App() {
       const supRests = await getRestaurantsFromSupabase();
       const supEvents = await getEventsFromSupabase();
       const supArticles = await getArticlesFromSupabase();
+      const supCategories = await getCategoriesFromSupabase();
 
       if (supRests && supRests.length > 0) {
         setRestaurants(supRests);
@@ -82,6 +85,9 @@ export default function App() {
       }
       if (supArticles && supArticles.length > 0) {
         setArticles(supArticles);
+      }
+      if (supCategories && supCategories.length > 0) {
+        setCategories(supCategories);
       }
     } catch (err) {
       console.error('Error fetching Supabase data on mount:', err);
@@ -136,6 +142,7 @@ export default function App() {
               setSearchFood={setSearchFood}
               setSearchBairro={setSearchBairro}
               setSelectedCategory={setSelectedCategory}
+              categories={categories}
             />
           } />
           
@@ -149,6 +156,7 @@ export default function App() {
               setSearchBairro={setSearchBairro}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
+              categories={categories}
             />
           } />
 
@@ -176,7 +184,7 @@ export default function App() {
           } />
           
           {/* Fallback route */}
-          <Route path="*" element={<HomeView restaurants={restaurants} onSelectRestaurant={handleSelectRestaurant} setSearchFood={setSearchFood} setSearchBairro={setSearchBairro} setSelectedCategory={setSelectedCategory} />} />
+          <Route path="*" element={<HomeView restaurants={restaurants} onSelectRestaurant={handleSelectRestaurant} setSearchFood={setSearchFood} setSearchBairro={setSearchBairro} setSelectedCategory={setSelectedCategory} categories={categories} />} />
         </Routes>
       </main>
 

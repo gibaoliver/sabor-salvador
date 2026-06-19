@@ -55,8 +55,8 @@ export default function RestaurantDetailView({
           {/* Main Huge Dish Showcase (Moqueca Clay Pot) - Left column (7 cols) */}
           <div className="lg:col-span-8 rounded-3xl overflow-hidden shadow-md relative h-[320px] md:h-[480px]">
             <img 
-              src="https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=1200&q=80" 
-              alt="Moqueca de Camarão Fervente" 
+              src={restaurant.imageUrl || "https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=1200&q=80"} 
+              alt={restaurant.name} 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />
@@ -128,19 +128,28 @@ export default function RestaurantDetailView({
                   restaurant.dishes.map((dish) => (
                     <div 
                       key={dish.id}
-                      className="bg-white p-6 rounded-2xl border border-brand-container-high hover:border-brand-primary/20 hover:shadow-sm transition text-left-side"
+                      className="bg-white p-6 rounded-2xl border border-brand-container-high hover:border-brand-primary/20 hover:shadow-sm transition text-left flex gap-4 items-start"
                     >
-                      <div className="flex justify-between items-start gap-4 mb-2 text-left">
-                        <h3 className="font-display text-md font-bold text-brand-on-surface">
-                          {dish.name}
-                        </h3>
-                        <span className="text-sm font-extrabold text-brand-primary shrink-0">
-                          R$ {dish.price.toFixed(2)}
-                        </span>
+                      {dish.imageUrl && (
+                        <img 
+                          src={dish.imageUrl} 
+                          alt={dish.name} 
+                          className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xl shrink-0" 
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start gap-4 mb-2 text-left">
+                          <h3 className="font-display text-md font-bold text-brand-on-surface">
+                            {dish.name}
+                          </h3>
+                          <span className="text-sm font-extrabold text-brand-primary shrink-0">
+                            R$ {dish.price.toFixed(2)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-brand-on-surface-variant leading-relaxed text-left">
+                          {dish.description}
+                        </p>
                       </div>
-                      <p className="text-xs text-brand-on-surface-variant leading-relaxed text-left">
-                        {dish.description}
-                      </p>
                     </div>
                   ))
                 )}

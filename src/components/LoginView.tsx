@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Utensils, ArrowRight, ArrowLeft, Phone, MapPin, Clock, Plus, Check, DollarSign, Image } from 'lucide-react';
 import { Restaurant } from '../types';
+import { supabase } from '../supabaseClient';
 
 interface LoginViewProps {
   onLoginSuccess: (isSuperAdmin?: boolean) => void;
@@ -57,7 +58,7 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
   }, [restCategory, useCustomUrl, isRegister]);
 
   // Handle Login submission
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setRecoveryMessage('');
@@ -66,44 +67,24 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
       return;
     }
     
-    const emailLower = email.trim().toLowerCase();
-    
-    // 1. Check default hardcoded super admin
-    if (emailLower === 'admin@saborsalvador.com' && password === 'admin123') {
-      onLoginSuccess(true);
-      return;
-    }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim()
+      });
 
-    // 2. Check local storage registered admins
-    const adminsJson = localStorage.getItem('sabor_salvador_admins');
-    if (adminsJson) {
-      try {
-        const admins = JSON.parse(adminsJson);
-        if (Array.isArray(admins)) {
-          const found = admins.find(a => a.email.toLowerCase() === emailLower && a.password === password);
-          if (found) {
-            onLoginSuccess(true);
-            return;
-          }
-        }
-      } catch (e) {
-        console.error('Error parsing admins:', e);
+      if (error) {
+        throw error;
       }
+
+      // Check if user is super admin based on metadata or specific email
+      const isSuperAdmin = data.user?.email === 'admin@saborsalvador.com' || data.user?.user_metadata?.is_super_admin === true;
+      
+      onLoginSuccess(isSuperAdmin);
+    } catch (err: any) {
+      console.error('Supabase login error:', err);
+      setErrorMessage('E-mail ou senha incorretos! Verifique suas credenciais no Supabase.');
     }
-
-    // 3. Fallback check for shortcut login
-    if (emailLower === 'proprietario@casadetereza.com.br' && password === 'dende1234') {
-      onLoginSuccess(false);
-      return;
-    }
-
-    setErrorMessage('E-mail ou senha incorretos! Verifique suas credenciais no Supabase.');
-  };
-
-  const handleShortcutLogin = () => {
-    setEmail('proprietario@casadetereza.com.br');
-    setPassword('dende1234');
-    onLoginSuccess(false);
   };
 
   // Handle Registration submission
