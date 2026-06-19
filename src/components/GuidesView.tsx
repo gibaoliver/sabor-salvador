@@ -17,6 +17,7 @@ interface ArticleComment {
 export default function GuidesView({ articles }: GuidesViewProps) {
   const [emailInput, setEmailInput] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string>(() => localStorage.getItem('sabor_salvador_user') || '');
 
   // Modal Article Reader State
   const [activeArticle, setActiveArticle] = useState<GuideArticle | null>(null);
@@ -71,6 +72,9 @@ export default function GuidesView({ articles }: GuidesViewProps) {
       content: commentContent,
       timeAgo: "Agora mesmo"
     };
+
+    localStorage.setItem('sabor_salvador_user', commentAuthor.trim());
+    setCurrentUser(commentAuthor.trim());
 
     setComments(prev => [newComment, ...prev]);
     setCommentAuthor('');
@@ -431,18 +435,14 @@ export default function GuidesView({ articles }: GuidesViewProps) {
                           </div>
 
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => handleStartEdit(comm)}
-                              className="text-[9px] font-bold text-brand-outline hover:text-brand-primary"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleDeleteComment(comm.id)}
-                              className="text-[9px] font-bold text-rose-500 hover:text-rose-700"
-                            >
-                              Excluir
-                            </button>
+                            {currentUser === comm.author && (
+                              <button
+                                onClick={() => handleStartEdit(comm)}
+                                className="text-[9px] font-bold text-brand-outline hover:text-brand-primary"
+                              >
+                                Editar
+                              </button>
+                            )}
                           </div>
                         </div>
 

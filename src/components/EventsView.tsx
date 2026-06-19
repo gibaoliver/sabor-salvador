@@ -45,6 +45,7 @@ const PRESET_IMAGES = [
 export default function EventsView({ events }: EventsViewProps) {
   const [activeCat, setActiveCat] = useState<'Todos' | 'Axé' | 'Samba' | 'Forró' | 'Jazz' | 'Alternativo'>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentUser, setCurrentUser] = useState<string>(() => localStorage.getItem('sabor_salvador_user') || '');
   
   // Enriched news state
   const [newsList, setNewsList] = useState<NewsArticle[]>([]);
@@ -212,6 +213,9 @@ export default function EventsView({ events }: EventsViewProps) {
       content: commentText.trim(),
       timeAgo: 'Agora mesmo'
     };
+
+    localStorage.setItem('sabor_salvador_user', commentName.trim());
+    setCurrentUser(commentName.trim());
 
     // Update active modal article comments
     setActiveArticle(prev => {
@@ -880,18 +884,14 @@ export default function EventsView({ events }: EventsViewProps) {
                           </div>
 
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => handleStartEditComment(comm)}
-                              className="text-[9px] font-bold text-brand-outline hover:text-brand-primary flex items-center gap-0.5"
-                            >
-                              <Edit2 className="w-2.5 h-2.5" /> Editar
-                            </button>
-                            <button
-                              onClick={() => handleDeleteComment(comm.id)}
-                              className="text-[9px] font-bold text-rose-500 hover:text-rose-700 flex items-center gap-0.5"
-                            >
-                              <Trash2 className="w-2.5 h-2.5" /> Excluir
-                            </button>
+                            {currentUser === comm.author && (
+                              <button
+                                onClick={() => handleStartEditComment(comm)}
+                                className="text-[9px] font-bold text-brand-outline hover:text-brand-primary flex items-center gap-0.5"
+                              >
+                                <Edit2 className="w-2.5 h-2.5" /> Editar
+                              </button>
+                            )}
                           </div>
                         </div>
 
