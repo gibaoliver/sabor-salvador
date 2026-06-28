@@ -77,7 +77,7 @@ export default function AdminApp() {
     import('./supabaseClient').then(({ supabase }) => {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          const isSuper = session.user.email === 'admin@saborsalvador.com' || session.user.user_metadata?.is_super_admin === true;
+          const isSuper = session.user.email === 'gilberto010396@gmail.com' || session.user.user_metadata?.is_super_admin === true;
           setIsLoggedIn(true);
           setIsSuperAdmin(isSuper);
           setActiveTab('admin');
@@ -87,7 +87,7 @@ export default function AdminApp() {
       // Listen for auth changes
       supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
-          const isSuper = session.user.email === 'admin@saborsalvador.com' || session.user.user_metadata?.is_super_admin === true;
+          const isSuper = session.user.email === 'gilberto010396@gmail.com' || session.user.user_metadata?.is_super_admin === true;
           setIsLoggedIn(true);
           setIsSuperAdmin(isSuper);
           setActiveTab('admin');

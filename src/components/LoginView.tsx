@@ -78,7 +78,7 @@ export default function LoginView({ onLoginSuccess, setActiveTab, onRegisterRest
       }
 
       // Check if user is super admin based on metadata or specific email
-      const isSuperAdmin = data.user?.email === 'admin@saborsalvador.com' || data.user?.user_metadata?.is_super_admin === true;
+      const isSuperAdmin = data.user?.email === 'gilberto010396@gmail.com' || data.user?.user_metadata?.is_super_admin === true;
       
       onLoginSuccess(isSuperAdmin);
     } catch (err: any) {
