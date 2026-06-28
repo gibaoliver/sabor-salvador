@@ -128,7 +128,7 @@ export default function SuperAdminDashboard({
     if (!restName) return;
     setIsSavingRest(true);
     
-    let finalImageUrl = restImageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
+    let finalImageUrl = restImageUrl || '';
     if (restImageFile) {
       const uploadedUrl = await uploadImageToSupabase(restImageFile);
       if (uploadedUrl) finalImageUrl = uploadedUrl;

@@ -49,106 +49,109 @@ export default function RestaurantDetailView({
           <span>Voltar para Listagem</span>
         </button>
 
-        {/* 1. VISUAL GALLERY SPLIT - Screen 2 main hero showcase */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
-          
-          {/* Main Huge Dish Showcase (Moqueca Clay Pot) - Left column (7 cols) */}
-          <div className="lg:col-span-8 rounded-3xl overflow-hidden shadow-md relative h-[320px] md:h-[480px]">
+        {/* 1. HERO BANNER FULL WIDTH */}
+        <div className="rounded-3xl overflow-hidden shadow-md relative h-[320px] md:h-[480px] mb-10 w-full bg-slate-800">
+          {restaurant.imageUrl ? (
             <img 
-              src={restaurant.imageUrl || "https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=1200&q=80"} 
+              src={restaurant.imageUrl} 
               alt={restaurant.name} 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 text-white text-left">
-              <span className="bg-brand-secondary-container text-brand-on-surface-variant font-bold text-[10px] uppercase.tracking-widest px-3 py-1 rounded-full mb-3 inline-block">
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-brand-surface border border-brand-container-high">
+              <Sparkles className="w-12 h-12 text-brand-outline-variant mb-4" />
+              <span className="text-brand-outline font-bold text-sm">Nenhuma foto de capa cadastrada</span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute bottom-6 left-6 right-6 text-white text-left flex items-end gap-6">
+            {/* Logo if exists (Desktop) */}
+            {restaurant.logoUrl && (
+              <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl p-2 shrink-0 shadow-2xl overflow-hidden hidden sm:block border-4 border-white/20">
+                 <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-xl" />
+              </div>
+            )}
+            <div>
+              <span className="bg-brand-secondary-container text-brand-on-surface-variant font-bold text-[10px] uppercase tracking-widest px-3 py-1 rounded-full mb-3 inline-block">
                 Especialidade da Casa
               </span>
-              <h1 className="font-display text-3xl md:text-4xl font-extrabold mb-2 leading-tight">
+              <h1 className="font-display text-3xl md:text-5xl font-extrabold mb-2 leading-tight drop-shadow-md">
                 {restaurant.name}
               </h1>
-              <p className="text-xs md:text-sm text-brand-surface-bright/80 max-w-xl font-medium">
+              <p className="text-xs md:text-sm text-brand-surface-bright/90 font-medium drop-shadow-sm">
                 {restaurant.neighborhood} • {restaurant.category} • Bahia Original
               </p>
             </div>
           </div>
-
-          {/* Side Rattan Lounge & Plated Fish Images - Right column (4 cols) */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            
-            {/* Top Subcategory: Rattan dining room */}
-            <div className="rounded-3xl overflow-hidden shadow-md h-[180px] md:h-[228px]">
-              <img 
-                src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80" 
-                alt="Ambiente Rústico Sofisticado com Lustres de Palha" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-
-            {/* Bottom Subcategory: Seafood plate fillet */}
-            <div className="rounded-3xl overflow-hidden shadow-md h-[180px] md:h-[228px]">
-              <img 
-                src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80" 
-                alt="Grelhado de Peixe ao Purê" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-
-          </div>
         </div>
 
-        {/* 2. DESCRIPTION & HIGHLIGHTS GRID SPLIT - Screen 2 Layout */}
+        {/* 2. DESCRIPTION & HIGHLIGHTS GRID SPLIT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
           
-          {/* Main Left Content - Descriptive paragraph & Menu Highlights (7 cols) */}
-          <div className="lg:col-span-8">
-            <div className="mb-10 text-left">
-              <p className="text-sm md:text-md leading-relaxed text-brand-on-surface-variant/90 font-medium whitespace-pre-line">
-                O ambiente da {restaurant.name} é uma jornada cultural profundamente imersiva, cercada por obras de arte locais, hospitalidade baiana calorosa e o aroma irresistível de dendê fresco batido e leite de coco fresco. Cada prato conta uma história do rico patrimônio histórico de Salvador, meticulosamente preparado com ingredientes nativos da agricultura familiar regional.
+          {/* Main Left Content (7 cols) */}
+          <div className="lg:col-span-8 text-left">
+            {/* Mobile Logo if exists */}
+            {restaurant.logoUrl && (
+              <div className="w-20 h-20 bg-white rounded-2xl p-2 mb-6 shadow-md overflow-hidden sm:hidden block border border-brand-container-high">
+                 <img src={restaurant.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-xl" />
+              </div>
+            )}
+            
+            <div className="mb-12">
+              <p className="text-sm md:text-base leading-relaxed text-brand-on-surface-variant font-medium whitespace-pre-line">
+                {restaurant.description || 'Nenhuma descrição informada pelo restaurante.'}
               </p>
             </div>
 
             {/* Menu Highlights list */}
             <div>
-              <div className="flex items-center gap-2 mb-6 text-left">
-                <Sparkles className="w-5 h-5 text-brand-primary" />
-                <h2 className="font-display text-xl font-extrabold text-brand-on-surface">
-                  Menu Highlights
+              <div className="flex items-center gap-2 mb-8 border-b border-brand-container-highest pb-4 text-left">
+                <h2 className="font-display text-2xl font-extrabold text-brand-on-surface">
+                  Sugestões do Chef
                 </h2>
               </div>
 
-              {/* Loop through actual dishes */}
-              <div className="space-y-4">
+              {/* Loop through dishes */}
+              <div className="space-y-6">
                 {restaurant.dishes.length === 0 ? (
                   <p className="text-xs text-brand-outline italic text-left">Consultar cardápio completo do dia no estabelecimento.</p>
                 ) : (
                   restaurant.dishes.map((dish) => (
                     <div 
                       key={dish.id}
-                      className="bg-white p-6 rounded-2xl border border-brand-container-high hover:border-brand-primary/20 hover:shadow-sm transition text-left flex gap-4 items-start"
+                      className="bg-white p-6 rounded-3xl border border-brand-container-high hover:border-brand-primary/20 hover:shadow-md transition text-left flex flex-col md:flex-row gap-6 items-start"
                     >
-                      {dish.imageUrl && (
+                      {dish.imageUrl ? (
                         <img 
                           src={dish.imageUrl} 
                           alt={dish.name} 
-                          className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xl shrink-0" 
+                          className="w-full md:w-36 h-48 md:h-36 object-cover rounded-2xl shrink-0 shadow-sm" 
                         />
+                      ) : (
+                        <div className="w-full md:w-36 h-48 md:h-36 bg-brand-container-low border border-brand-container-highest rounded-2xl shrink-0 flex items-center justify-center">
+                          <Sparkles className="w-6 h-6 text-brand-outline-variant" />
+                        </div>
                       )}
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start gap-4 mb-2 text-left">
-                          <h3 className="font-display text-md font-bold text-brand-on-surface">
+                      
+                      <div className="flex-1 w-full">
+                        <div className="flex justify-between items-start gap-4 mb-3 text-left">
+                          <h3 className="font-display text-lg font-bold text-brand-on-surface leading-snug">
                             {dish.name}
                           </h3>
-                          <span className="text-sm font-extrabold text-brand-primary shrink-0">
+                          <span className="text-sm font-extrabold text-brand-secondary shrink-0">
                             R$ {dish.price.toFixed(2)}
                           </span>
                         </div>
-                        <p className="text-xs text-brand-on-surface-variant leading-relaxed text-left">
+                        <p className="text-xs text-brand-on-surface-variant leading-relaxed text-left mb-4">
                           {dish.description}
                         </p>
+                        
+                        {/* Tags for presentation like in the model */}
+                        <div className="flex flex-wrap gap-2">
+                           <span className="px-3 py-1 border border-brand-outline-variant rounded-full text-[9px] font-bold text-brand-outline uppercase tracking-wider">Original</span>
+                           <span className="px-3 py-1 border border-brand-outline-variant rounded-full text-[9px] font-bold text-brand-outline uppercase tracking-wider">Chef's Choice</span>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -157,9 +160,40 @@ export default function RestaurantDetailView({
             </div>
           </div>
 
-          {/* Right Information Cards & Directions widget (4 cols) */}
+          {/* Right Information Cards (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
             
+            {/* Horário de Funcionamento Box */}
+            <div className="bg-[#f7f5f2] border border-[#e8e4dc] p-6 rounded-3xl text-left shadow-sm">
+              <div className="flex items-center gap-2 mb-6 text-brand-on-surface border-b border-[#e8e4dc] pb-4">
+                 <Clock className="w-5 h-5 text-brand-secondary" />
+                 <h3 className="font-display text-lg font-bold">Horário de Funcionamento</h3>
+              </div>
+              
+              <div className="space-y-4 text-xs font-semibold text-brand-on-surface-variant border-b border-[#e8e4dc] pb-6 mb-6">
+                 <div className="flex justify-between items-center">
+                    <span>Seg - Qui</span>
+                    <span>18:00 - {restaurant.closesAt}</span>
+                 </div>
+                 <div className="flex justify-between items-center text-brand-secondary">
+                    <span>Sex - Sáb</span>
+                    <span>12:00 - 00:00</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                    <span>Domingo</span>
+                    <span>12:00 - 21:00</span>
+                 </div>
+              </div>
+              
+              <div className="bg-[#efeadf] p-4 rounded-xl text-center italic text-xs text-brand-on-surface-variant font-medium mb-6 shadow-inner">
+                 "A arte da culinária é a linguagem universal do afeto."
+              </div>
+
+              <button className="w-full py-3.5 bg-[#1a1a1a] text-white font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-black transition shadow-lg flex items-center justify-center gap-2">
+                 Solicitar Reserva
+              </button>
+            </div>
+
             {/* Contact details box */}
             <div className="bg-brand-container-low border border-brand-container-highest p-6 rounded-3xl text-left">
               <div className="flex items-center gap-3 mb-4">
@@ -173,7 +207,7 @@ export default function RestaurantDetailView({
                 <div className="flex gap-3">
                   <MapPin className="w-4 h-4 text-brand-primary shrink-0" />
                   <div>
-                    <h4 className="text-brand-on-surface font-extrabold">Address</h4>
+                    <h4 className="text-brand-on-surface font-extrabold">Endereço</h4>
                     <p className="font-medium mt-0.5">{restaurant.address}</p>
                   </div>
                 </div>
@@ -181,22 +215,22 @@ export default function RestaurantDetailView({
                 <div className="flex gap-3">
                   <Phone className="w-4 h-4 text-brand-primary shrink-0" />
                   <div>
-                    <h4 className="text-brand-on-surface font-extrabold">Phone</h4>
-                    <p className="font-medium mt-0.5">{restaurant.phone}</p>
+                    <h4 className="text-brand-on-surface font-extrabold">Telefone</h4>
+                    <p className="font-medium mt-0.5">{restaurant.phone || '(71) 99999-9999'}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Simulated Live Map Device */}
-            <div className="bg-[#fadcd2]/40 rounded-3xl p-4 border border-brand-container-highest flex flex-col justify-between items-center text-center relative h-52 overflow-hidden shadow-inner">
+            <div className="bg-[#fadcd2]/40 rounded-3xl p-4 border border-brand-container-highest flex flex-col justify-between items-center text-center relative h-40 overflow-hidden shadow-inner group">
               <div 
                 className="absolute inset-0 opacity-25 bg-[radial-gradient(#a73a00_1px,transparent_1px)]"
                 style={{ backgroundSize: '12px 12px' }}
               />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-10 h-10 bg-brand-primary-container/20 rounded-full flex items-center justify-center animate-pulse">
-                  <MapPin className="w-6 h-6 text-brand-primary animate-bounce" />
+                  <MapPin className="w-6 h-6 text-brand-primary group-hover:animate-bounce" />
                 </div>
               </div>
               
@@ -206,7 +240,7 @@ export default function RestaurantDetailView({
                   className="w-full bg-brand-primary-container hover:bg-brand-primary text-white font-bold text-xs py-3 px-5 rounded-full shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:scale-101"
                 >
                   <Navigation className="w-3.5 h-3.5" />
-                  <span>Get Directions</span>
+                  <span>Obter Rotas</span>
                 </button>
               </div>
             </div>
