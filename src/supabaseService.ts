@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
-import { Restaurant, Event, Review, GuideArticle } from './types';
-import { INITIAL_RESTAURANTS, INITIAL_EVENTS, INITIAL_ARTICLES } from './data';
+import { Restaurant, Event, Review } from './types';
+import { INITIAL_RESTAURANTS, INITIAL_EVENTS } from './data';
 
 // Helper to check if a table exists by attempting a 1-row select
 export async function testTableConnection(tableName: string): Promise<boolean> {
@@ -161,70 +161,6 @@ export async function deleteEventFromSupabase(eventId: string): Promise<boolean>
   return true;
 }
 
-// Fetch all articles
-export async function getArticlesFromSupabase(): Promise<GuideArticle[] | null> {
-  const { data, error } = await supabase
-    .from('articles')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching articles from Supabase:', error);
-    if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      return null;
-    }
-    return null;
-  }
-
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    title: row.title,
-    summary: row.summary,
-    category: row.category,
-    date: row.date,
-    imageUrl: row.image_url,
-    readTime: row.read_time,
-    content: row.content,
-  }));
-}
-
-// Insert or update an article
-export async function upsertArticleToSupabase(article: GuideArticle): Promise<boolean> {
-  const payload = {
-    id: article.id,
-    title: article.title,
-    summary: article.summary,
-    category: article.category,
-    date: article.date,
-    image_url: article.imageUrl,
-    read_time: article.readTime,
-    content: article.content,
-  };
-
-  const { error } = await supabase
-    .from('articles')
-    .upsert(payload, { onConflict: 'id' });
-
-  if (error) {
-    console.error(`Error saving article ${article.title} to Supabase:`, error);
-    return false;
-  }
-  return true;
-}
-
-// Delete article from Supabase
-export async function deleteArticleFromSupabase(articleId: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('articles')
-    .delete()
-    .eq('id', articleId);
-
-  if (error) {
-    console.error(`Error deleting article ${articleId} from Supabase:`, error);
-    return false;
-  }
-  return true;
-}
 
 // Fetch all categories
 export async function getCategoriesFromSupabase(): Promise<string[] | null> {
@@ -317,13 +253,6 @@ export async function seedSupabaseInitialData(): Promise<{ success: boolean; mes
       }
     }
 
-    // 3. Send articles
-    for (const art of INITIAL_ARTICLES) {
-      const ok = await upsertArticleToSupabase(art);
-      if (!ok) {
-        return { success: false, message: `Erro ao enviar dados do artigo: ${art.title}` };
-      }
-    }
 
     // 4. Send default categories
     const defaultCategories = [

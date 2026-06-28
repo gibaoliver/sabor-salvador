@@ -47,16 +47,7 @@ export interface Event {
   status?: 'Confirmado' | 'Esgotado' | 'Indisponível';
 }
 
-export interface GuideArticle {
-  id: string;
-  title: string;
-  summary: string;
-  category: string;
-  date: string;
-  imageUrl: string;
-  readTime: string;
-  content?: string;
-}
+
 
 export interface DashboardMetric {
   label: string;

@@ -10,9 +10,6 @@ import {
   upsertRestaurantToSupabase, 
   upsertEventToSupabase, 
   deleteEventFromSupabase, 
-  getArticlesFromSupabase,
-  upsertArticleToSupabase,
-  deleteArticleFromSupabase,
   getCategoriesFromSupabase,
   upsertCategoryToSupabase,
   deleteCategoryFromSupabase,
@@ -21,17 +18,15 @@ import {
 
 import { 
   INITIAL_RESTAURANTS, 
-  INITIAL_EVENTS, 
-  INITIAL_ARTICLES 
+  INITIAL_EVENTS 
 } from './data';
-import { Restaurant, Event, GuideArticle } from './types';
+import { Restaurant, Event } from './types';
 
 export default function AdminApp() {
   const [activeTab, setActiveTab] = useState<'login' | 'admin'>('login');
   
   const [restaurants, setRestaurants] = useState<Restaurant[]>(INITIAL_RESTAURANTS);
   const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS);
-  const [articles, setArticles] = useState<GuideArticle[]>(INITIAL_ARTICLES);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
@@ -51,7 +46,6 @@ export default function AdminApp() {
     try {
       const supRests = await getRestaurantsFromSupabase();
       const supEvents = await getEventsFromSupabase();
-      const supArticles = await getArticlesFromSupabase();
       const supCategories = await getCategoriesFromSupabase();
 
       if (supRests === null || supEvents === null) {
@@ -63,9 +57,6 @@ export default function AdminApp() {
         }
         if (supEvents.length > 0) {
           setEvents(supEvents);
-        }
-        if (supArticles && supArticles.length > 0) {
-          setArticles(supArticles);
         }
         if (supCategories && supCategories.length > 0) {
           setCategories(supCategories);
@@ -124,20 +115,6 @@ export default function AdminApp() {
     await deleteEventFromSupabase(eventId);
   };
 
-  const handleAddArticle = async (newArticle: GuideArticle) => {
-    setArticles(prev => [newArticle, ...prev]);
-    await upsertArticleToSupabase(newArticle);
-  };
-
-  const handleUpdateArticle = async (updatedArticle: GuideArticle) => {
-    setArticles(prev => prev.map(a => a.id === updatedArticle.id ? updatedArticle : a));
-    await upsertArticleToSupabase(updatedArticle);
-  };
-
-  const handleDeleteArticle = async (articleId: string) => {
-    setArticles(prev => prev.filter(a => a.id !== articleId));
-    await deleteArticleFromSupabase(articleId);
-  };
 
   const handleUpdateRestaurant = async (updated: Restaurant) => {
     setRestaurants(prev => prev.map(r => r.id === updated.id ? updated : r));
@@ -209,16 +186,12 @@ export default function AdminApp() {
             <SuperAdminDashboard
               restaurants={restaurants}
               events={events}
-              articles={articles}
               onAddRestaurant={handleRegisterRestaurant}
               onUpdateRestaurant={handleUpdateRestaurant}
               onDeleteRestaurant={handleDeleteRestaurant}
               onAddEvent={handleAddEvent}
               onUpdateEvent={handleUpdateEvent}
               onDeleteEvent={handleDeleteEvent}
-              onAddArticle={handleAddArticle}
-              onUpdateArticle={handleUpdateArticle}
-              onDeleteArticle={handleDeleteArticle}
               categories={categories}
               onAddCategory={handleAddCategory}
               onDeleteCategory={handleDeleteCategory}

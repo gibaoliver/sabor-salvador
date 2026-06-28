@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, Store, Calendar, BookOpen, Plus, Edit2, Trash2, Tags, Image as ImageIcon, DollarSign, Clock, MapPin, Phone, X, Upload
 } from 'lucide-react';
-import { Restaurant, Event, GuideArticle, Dish } from '../types';
+import { Restaurant, Event, Dish } from '../types';
 import { uploadImageToSupabase } from '../supabaseService';
 
 interface SuperAdminDashboardProps {
   restaurants: Restaurant[];
   events: Event[];
-  articles: GuideArticle[];
   categories: string[];
   onAddRestaurant: (rest: Restaurant) => void;
   onUpdateRestaurant: (rest: Restaurant) => void;
@@ -16,21 +15,17 @@ interface SuperAdminDashboardProps {
   onAddEvent: (ev: Event) => void;
   onUpdateEvent: (ev: Event) => void;
   onDeleteEvent: (id: string) => void;
-  onAddArticle: (art: GuideArticle) => void;
-  onUpdateArticle: (art: GuideArticle) => void;
-  onDeleteArticle: (id: string) => void;
   onAddCategory: (cat: string) => void;
   onDeleteCategory: (cat: string) => void;
 }
 
 export default function SuperAdminDashboard({
-  restaurants, events, articles, categories,
+  restaurants, events, categories,
   onAddRestaurant, onUpdateRestaurant, onDeleteRestaurant,
   onAddEvent, onUpdateEvent, onDeleteEvent,
-  onAddArticle, onUpdateArticle, onDeleteArticle,
   onAddCategory, onDeleteCategory
 }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'restaurants' | 'events' | 'articles' | 'categories'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'restaurants' | 'events' | 'categories'>('overview');
   
   // -- Restaurant Form State --
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
@@ -60,16 +55,7 @@ export default function SuperAdminDashboard({
   const [evCategory, setEvCategory] = useState(categories[0] || '');
   const [evImageUrl, setEvImageUrl] = useState('');
 
-  // -- Article Form State --
-  const [editingArticle, setEditingArticle] = useState<GuideArticle | null>(null);
-  const [artTitle, setArtTitle] = useState('');
-  const [artSummary, setArtSummary] = useState('');
-  const [artCategory, setArtCategory] = useState(categories[0] || '');
-  const [artDate, setArtDate] = useState('');
-  const [artImageUrl, setArtImageUrl] = useState('');
-  const [artImageFile, setArtImageFile] = useState<File | null>(null);
-  const [artContent, setArtContent] = useState('');
-  const [isSavingArt, setIsSavingArt] = useState(false);
+
 
   // -- Category Form State --
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -189,39 +175,7 @@ export default function SuperAdminDashboard({
     resetEventForm();
   };
 
-  // ---- ARTICLE METHODS ----
-  const resetArticleForm = () => {
-    setEditingArticle(null);
-    setArtTitle(''); setArtSummary(''); setArtCategory(categories[0] || ''); setArtDate(''); setArtImageUrl(''); setArtImageFile(null); setArtContent('');
-  };
 
-  const startEditArticle = (a: GuideArticle) => {
-    setEditingArticle(a);
-    setArtTitle(a.title); setArtSummary(a.summary); setArtCategory(a.category); setArtDate(a.date); setArtImageUrl(a.imageUrl); setArtImageFile(null); setArtContent(a.content || '');
-  };
-
-  const saveArticle = async () => {
-    if (!artTitle) return;
-    setIsSavingArt(true);
-    let finalImageUrl = artImageUrl || 'https://images.unsplash.com/photo-1481277542470-605612bd2d61?auto=format&fit=crop&w=800&q=80';
-    if (artImageFile) {
-      const uploadedUrl = await uploadImageToSupabase(artImageFile);
-      if (uploadedUrl) finalImageUrl = uploadedUrl;
-    }
-
-    const baseId = `art-${Date.now()}`;
-    const newArt: GuideArticle = editingArticle ? { ...editingArticle } : {
-      id: baseId, title: artTitle, summary: artSummary, category: 'Geral', // Default hidden category
-      date: artDate || new Date().toLocaleDateString('pt-BR'),
-      imageUrl: finalImageUrl,
-      readTime: '5 min', content: artContent
-    };
-    newArt.title = artTitle; newArt.summary = artSummary; newArt.category = 'Geral';
-    if (artDate) newArt.date = artDate; newArt.imageUrl = finalImageUrl; newArt.content = artContent;
-    if (editingArticle) onUpdateArticle(newArt); else onAddArticle(newArt);
-    resetArticleForm();
-    setIsSavingArt(false);
-  };
 
   return (
     <div className="flex-grow flex bg-[#0B1121] text-slate-300 w-full font-sans overflow-hidden">
@@ -244,9 +198,7 @@ export default function SuperAdminDashboard({
             <button onClick={() => { setActiveTab('restaurants'); resetRestForm(); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'restaurants' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
               <Store className="w-4 h-4" /> Restaurantes
             </button>
-            <button onClick={() => { setActiveTab('articles'); resetArticleForm(); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'articles' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
-              <BookOpen className="w-4 h-4" /> Guias e Blogs
-            </button>
+
             <button onClick={() => { setActiveTab('events'); resetEventForm(); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'events' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
               <Calendar className="w-4 h-4" /> Eventos
             </button>
@@ -307,16 +259,7 @@ export default function SuperAdminDashboard({
                   <p className="text-[10px] text-slate-500 mt-auto">Agendados no sistema</p>
                 </div>
                 
-                <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5 flex flex-col relative overflow-hidden">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-xs font-semibold text-slate-400 mb-1">Guias e Blogs</p>
-                      <h3 className="text-3xl font-black text-white">{articles.length}</h3>
-                    </div>
-                    <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400"><BookOpen className="w-5 h-5" /></div>
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-auto">Artigos publicados</p>
-                </div>
+
 
                 <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5 flex flex-col relative overflow-hidden">
                   <div className="flex justify-between items-start mb-4">
@@ -352,25 +295,7 @@ export default function SuperAdminDashboard({
                   </div>
                 </div>
 
-                <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-sm font-bold text-white">Últimas Publicações</h3>
-                  </div>
-                  <div className="space-y-4">
-                    {articles.slice(0, 3).map((a, i) => (
-                      <div key={i} className="flex gap-4 p-3 rounded-xl bg-[#1F2937]/50 border border-slate-800/50">
-                        <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
-                          <BookOpen className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-white line-clamp-1">{a.title}</p>
-                          <p className="text-xs text-slate-400">Em {a.date}</p>
-                        </div>
-                      </div>
-                    ))}
-                    {articles.length === 0 && <p className="text-xs text-slate-500">Nenhum registro ainda.</p>}
-                  </div>
-                </div>
+
               </div>
             </div>
           )}
@@ -516,88 +441,7 @@ export default function SuperAdminDashboard({
             </div>
           )}
 
-          {/* TAB: ARTICLES */}
-          {activeTab === 'articles' && (
-            <div className="animate-fade-in space-y-6">
-              <h2 className="text-xl font-bold text-white">Gerenciar Guias e Blogs</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                {/* FORM */}
-                <div className="lg:col-span-1 bg-[#111827] border border-slate-800 rounded-2xl p-6 sticky top-0">
-                  <h3 className="text-sm font-bold text-white mb-5 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded bg-emerald-500/20 flex items-center justify-center">
-                      <Plus className="w-3.5 h-3.5 text-emerald-400" />
-                    </div>
-                    {editingArticle ? 'Editar Artigo' : 'Novo Artigo'}
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Título *</label>
-                      <input type="text" value={artTitle} onChange={e => setArtTitle(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Resumo Rápido</label>
-                      <textarea value={artSummary} onChange={e => setArtSummary(e.target.value)} rows={2} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"></textarea>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Data Publicação</label>
-                        <input type="text" placeholder="Ex: 20 Out 2024" value={artDate} onChange={e => setArtDate(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Foto de Capa</label>
-                        <div className="flex items-center gap-3 h-full">
-                          <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-emerald-500 rounded-xl px-4 h-full py-1.5 flex items-center justify-center gap-2 transition text-xs text-slate-300">
-                            <Upload className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                            <span className="truncate">{artImageFile ? artImageFile.name : 'Anexar imagem'}</span>
-                            <input type="file" className="hidden" accept="image/*" onChange={e => {
-                              if (e.target.files && e.target.files[0]) {
-                                setArtImageFile(e.target.files[0]);
-                                setArtImageUrl('');
-                              }
-                            }} />
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Conteúdo Completo</label>
-                      <textarea value={artContent} onChange={e => setArtContent(e.target.value)} rows={4} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"></textarea>
-                    </div>
-                    <div className="pt-2 flex gap-3">
-                      {editingArticle && <button onClick={resetArticleForm} className="flex-1 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition" disabled={isSavingArt}>Cancelar</button>}
-                      <button onClick={saveArticle} disabled={isSavingArt} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50">
-                        {isSavingArt ? 'Salvando...' : 'Salvar Notícia'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
 
-                {/* LIST */}
-                <div className="lg:col-span-2 space-y-3">
-                  {articles.map(a => (
-                    <div key={a.id} className="bg-[#111827] border border-slate-800 p-4 rounded-2xl flex justify-between items-center hover:border-slate-700 transition">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-12 rounded-xl bg-slate-800 overflow-hidden shrink-0 border border-slate-700">
-                          {a.imageUrl && <img src={a.imageUrl} className="w-full h-full object-cover" alt="" />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-white mb-0.5 line-clamp-1">{a.title}</p>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {a.date}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <button onClick={() => startEditArticle(a)} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700 hover:text-white transition"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => onDeleteArticle(a.id)} className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    </div>
-                  ))}
-                  {articles.length === 0 && <p className="text-center text-slate-500 text-sm py-10">Nenhum artigo cadastrado.</p>}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* TAB: EVENTS */}
           {activeTab === 'events' && (

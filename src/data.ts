@@ -1,4 +1,4 @@
-import { Restaurant, Event, GuideArticle, RecentActivity } from './types';
+import { Restaurant, Event, RecentActivity } from './types';
 
 export const INITIAL_RESTAURANTS: Restaurant[] = [
   {
@@ -298,36 +298,7 @@ export const INITIAL_EVENTS: Event[] = [
   }
 ];
 
-export const INITIAL_ARTICLES: GuideArticle[] = [
-  {
-    id: 'art-1',
-    title: 'A Força Perene da Festa de Iemanjá: Tradição e Renovação no Rio Vermelho',
-    summary: 'Como a maior celebração popular da cultura afro-brasileira na Bahia se reinventa a cada ano, mantendo sua essência sagrada enquanto abraça novas expressões musicais e artísticas ao longo da orla do charmoso Rio Vermelho.',
-    category: 'Cultura',
-    date: '02 Fev 2024',
-    imageUrl: 'https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?auto=format&fit=crop&w=1200&q=80',
-    readTime: '6 min leitura',
-    content: 'A Festa de Iemanjá é a joia viva de Salvador. Todo dia 2 de fevereiro, as praias do Rio Vermelho são inundadas por milhares de devotos vestidos de branco carregando cestos de flores e presentes para a Rainha do Mar. O que começou no início do século XX como um voto dos pescadores da colônia Z-1 em tempos de escassez se tornou um megasertão sagrado e profano, onde terreiros de candomblé rezam o padê da alvorada e os blocos de rua tocam samba de roda sob o sol de Verão...'
-  },
-  {
-    id: 'art-2',
-    title: 'Os bastidores do Carnaval: ensaios que ninguém vê',
-    summary: 'Mergulhamos nos barracões do Pelourinho para documentar os intensos ensaios noturnos dos blocos afro, onde ritmos e coreografias milenares são polidos antes da avenida com grande fervor da comunidade local.',
-    category: 'Cultura',
-    date: '12 Fev 2024',
-    imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
-    readTime: '4 min leitura'
-  },
-  {
-    id: 'art-3',
-    title: 'A volta das rodas de samba no Garcia',
-    summary: 'Após um hiato de cuidados, o tradicional bairro do Garcia retoma suas rodas de samba de raiz lendárias aos domingos, atraindo moradores e turistas ansiosos por um prato de feijoada quente e pura poesia rítmica cantada.',
-    category: 'Música',
-    date: '10 Fev 2024',
-    imageUrl: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=800&q=80',
-    readTime: '5 min leitura'
-  }
-];
+
 
 export const INITIAL_DASHBOARD_METRICS: RecentActivity[] = [
   {
