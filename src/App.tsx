@@ -50,7 +50,7 @@ function RestaurantDetailViewWrapper({ restaurants, onAddReview }: { restaurants
     <RestaurantDetailView 
       restaurant={currentRestaurant}
       onBack={() => navigate('/restaurantes')}
-      onAddReview={handleAddReview}
+      onAddReview={onAddReview}
     />
   );
 }

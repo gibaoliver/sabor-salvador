@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   Calendar, MapPin, ThumbsUp, MessageCircle, X, 
-  Send, User, Check, Eye, Share2, ArrowLeft, Edit2
+  Send, User, Check, Eye, Share2, ArrowLeft, Edit2, BookOpen
 } from 'lucide-react';
 import { Event } from '../types';
 

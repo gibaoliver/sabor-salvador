@@ -57,6 +57,10 @@ export default function EventsView({ events }: EventsViewProps) {
   const [commentName, setCommentName] = useState<string>('');
   const [commentText, setCommentText] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<string>(() => localStorage.getItem('sabor_salvador_user') || '');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState<string>('');
+  const [toastMessage, setToastMessage] = useState<string>('');
+  
   // Helpers inside closure for initial content hydration
   const getDetailedSummary = (id: string) => {
     if (id === 'ev-1') return 'A abertura oficial do festival lotou o centro histórico de Salvador. Cobrimos os bastidores do palanque e a emoção das apresentações de Axé.';
