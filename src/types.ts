@@ -23,7 +23,8 @@ export interface Restaurant {
   neighborhood: 'Rio Vermelho' | 'Barra' | 'Pelourinho' | 'Pituba';
   priceRange: '$' | '$$' | '$$$';
   category: string;
-  imageUrl: string;
+  imageUrl: string; // Used as banner/cover
+  logoUrl?: string;
   description: string;
   address: string;
   phone: string;

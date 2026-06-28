@@ -25,7 +25,8 @@ export default function SuperAdminDashboard({
   onAddEvent, onUpdateEvent, onDeleteEvent,
   onAddCategory, onDeleteCategory
 }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'restaurants' | 'events' | 'categories'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'create_restaurants' | 'manage_restaurants' | 'events' | 'categories'>('overview');
+  const [selectedManageRestaurant, setSelectedManageRestaurant] = useState<Restaurant | null>(null);
   
   // -- Restaurant Form State --
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
@@ -34,6 +35,8 @@ export default function SuperAdminDashboard({
   const [restNeighborhood, setRestNeighborhood] = useState<'Rio Vermelho' | 'Barra' | 'Pelourinho' | 'Pituba'>('Rio Vermelho');
   const [restImageUrl, setRestImageUrl] = useState('');
   const [restImageFile, setRestImageFile] = useState<File | null>(null);
+  const [restLogoUrl, setRestLogoUrl] = useState('');
+  const [restLogoFile, setRestLogoFile] = useState<File | null>(null);
   const [restDescription, setRestDescription] = useState('');
   const [restDishes, setRestDishes] = useState<Dish[]>([]);
   const [isSavingRest, setIsSavingRest] = useState(false);
@@ -68,6 +71,8 @@ export default function SuperAdminDashboard({
     setRestNeighborhood('Rio Vermelho');
     setRestImageUrl('');
     setRestImageFile(null);
+    setRestLogoUrl('');
+    setRestLogoFile(null);
     setRestDescription('');
     setRestDishes([]);
     resetDishForm();
@@ -112,6 +117,8 @@ export default function SuperAdminDashboard({
     setRestNeighborhood(r.neighborhood);
     setRestImageUrl(r.imageUrl);
     setRestImageFile(null);
+    setRestLogoUrl(r.logoUrl || '');
+    setRestLogoFile(null);
     setRestDescription(r.description);
     setRestDishes(r.dishes || []);
     resetDishForm();
@@ -127,22 +134,38 @@ export default function SuperAdminDashboard({
       if (uploadedUrl) finalImageUrl = uploadedUrl;
     }
 
+    let finalLogoUrl = restLogoUrl;
+    if (restLogoFile) {
+      const uploadedLogoUrl = await uploadImageToSupabase(restLogoFile);
+      if (uploadedLogoUrl) finalLogoUrl = uploadedLogoUrl;
+    }
+
     const baseId = `rest-${Date.now()}`;
     const newRest: Restaurant = editingRestaurant ? { ...editingRestaurant } : {
       id: baseId, name: restName, rating: 5.0, reviewsCount: 0,
       neighborhood: restNeighborhood, priceRange: '$$', category: restCategory || categories[0],
-      imageUrl: finalImageUrl,
+      imageUrl: finalImageUrl, logoUrl: finalLogoUrl,
       description: restDescription, address: '', phone: '', closesAt: '23:00', dishes: restDishes, reviews: [], featured: true
     };
     newRest.name = restName; 
     newRest.category = restCategory; 
     newRest.neighborhood = restNeighborhood;
     newRest.imageUrl = finalImageUrl;
+    newRest.logoUrl = finalLogoUrl;
     newRest.description = restDescription;
     newRest.dishes = restDishes;
     
     if (editingRestaurant) onUpdateRestaurant(newRest); else onAddRestaurant(newRest);
-    resetRestForm();
+    
+    // If we were creating, reset the form. If we were managing, keep the data loaded but show success state if needed
+    if (!editingRestaurant) {
+      resetRestForm();
+    } else {
+      setEditingRestaurant(newRest);
+      if (selectedManageRestaurant && selectedManageRestaurant.id === newRest.id) {
+         setSelectedManageRestaurant(newRest);
+      }
+    }
     setIsSavingRest(false);
   };
 
@@ -195,8 +218,11 @@ export default function SuperAdminDashboard({
             <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'overview' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
               <LayoutDashboard className="w-4 h-4" /> Dashboard
             </button>
-            <button onClick={() => { setActiveTab('restaurants'); resetRestForm(); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'restaurants' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
-              <Store className="w-4 h-4" /> Restaurantes
+            <button onClick={() => { setActiveTab('create_restaurants'); resetRestForm(); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'create_restaurants' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
+              <Store className="w-4 h-4" /> Criar Restaurantes
+            </button>
+            <button onClick={() => { setActiveTab('manage_restaurants'); setSelectedManageRestaurant(null); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'manage_restaurants' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
+              <Edit2 className="w-4 h-4" /> Gerenciar Restaurantes
             </button>
 
             <button onClick={() => { setActiveTab('events'); resetEventForm(); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === 'events' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
@@ -300,69 +326,212 @@ export default function SuperAdminDashboard({
             </div>
           )}
 
-          {/* TAB: RESTAURANTES */}
-          {activeTab === 'restaurants' && (
+          {/* TAB: CRIAR RESTAURANTES */}
+          {activeTab === 'create_restaurants' && (
             <div className="animate-fade-in space-y-6">
               <div className="flex justify-between items-center mb-2">
-                <h2 className="text-xl font-bold text-white">Gerenciar Restaurantes</h2>
+                <h2 className="text-xl font-bold text-white">Criar Restaurante</h2>
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                {/* FORM */}
-                <div className="lg:col-span-1 bg-[#111827] border border-slate-800 rounded-2xl p-6 sticky top-0">
-                  <h3 className="text-sm font-bold text-white mb-5 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded bg-indigo-500/20 flex items-center justify-center">
-                      <Plus className="w-3.5 h-3.5 text-indigo-400" />
+              <div className="max-w-2xl bg-[#111827] border border-slate-800 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-white mb-5 flex items-center gap-2">
+                  <div className="w-6 h-6 rounded bg-indigo-500/20 flex items-center justify-center">
+                    <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                  </div>
+                  Novo Restaurante
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nome *</label>
+                    <input type="text" value={restName} onChange={e => setRestName(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Categoria</label>
+                      <select value={restCategory} onChange={e => setRestCategory(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none">
+                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
                     </div>
-                    {editingRestaurant ? 'Editar Restaurante' : 'Novo Restaurante'}
-                  </h3>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bairro</label>
+                      <select value={restNeighborhood} onChange={e => setRestNeighborhood(e.target.value as any)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none">
+                        <option value="Rio Vermelho">Rio Vermelho</option><option value="Barra">Barra</option>
+                        <option value="Pelourinho">Pelourinho</option><option value="Pituba">Pituba</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Logomarca</label>
+                      <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-indigo-500 rounded-xl px-4 py-2 flex items-center justify-center gap-2 transition">
+                        <Upload className="w-4 h-4 text-indigo-400" />
+                        <span className="text-xs text-slate-300 font-medium truncate">{restLogoFile ? restLogoFile.name : 'Anexar Logo'}</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            setRestLogoFile(e.target.files[0]);
+                            setRestLogoUrl('');
+                          }
+                        }} />
+                      </label>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Foto de Capa (Banner)</label>
+                      <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-indigo-500 rounded-xl px-4 py-2 flex items-center justify-center gap-2 transition">
+                        <Upload className="w-4 h-4 text-indigo-400" />
+                        <span className="text-xs text-slate-300 font-medium truncate">{restImageFile ? restImageFile.name : 'Anexar Capa'}</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            setRestImageFile(e.target.files[0]);
+                            setRestImageUrl('');
+                          }
+                        }} />
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Descrição</label>
+                    <textarea value={restDescription} onChange={e => setRestDescription(e.target.value)} rows={3} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"></textarea>
+                  </div>
+                  <div className="pt-4 flex gap-3 border-t border-slate-800">
+                    <button onClick={saveRestaurant} disabled={isSavingRest} className="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50">
+                      {isSavingRest ? 'Cadastrando...' : 'Cadastrar Restaurante'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: GERENCIAR RESTAURANTES */}
+          {activeTab === 'manage_restaurants' && (
+            <div className="animate-fade-in space-y-6">
+              {!selectedManageRestaurant ? (
+                <>
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-xl font-bold text-white">Gerenciar Restaurantes</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {restaurants.map(r => (
+                      <div key={r.id} className="bg-[#111827] border border-slate-800 p-4 rounded-2xl flex flex-col hover:border-slate-700 transition">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden shrink-0 border border-slate-700">
+                            {r.logoUrl ? <img src={r.logoUrl} className="w-full h-full object-cover" alt="" /> : (r.imageUrl ? <img src={r.imageUrl} className="w-full h-full object-cover" alt="" /> : <Store className="w-5 h-5 text-slate-500 m-auto mt-3" />)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white mb-0.5 truncate max-w-[150px]">{r.name}</p>
+                            <p className="text-[10px] text-slate-400 font-medium truncate">{r.category}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-auto">
+                          <button onClick={() => { startEditRest(r); setSelectedManageRestaurant(r); }} className="flex-1 py-2 rounded-xl bg-indigo-500/10 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 transition flex items-center justify-center gap-2">
+                            <Edit2 className="w-3.5 h-3.5" /> Gerenciar
+                          </button>
+                          <button onClick={() => onDeleteRestaurant(r.id)} className="w-10 h-10 shrink-0 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {restaurants.length === 0 && <p className="text-slate-500 text-sm py-10 col-span-3">Nenhum restaurante cadastrado.</p>}
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => { setSelectedManageRestaurant(null); resetRestForm(); }} className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white transition">
+                      <X className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-xl font-bold text-white">Gerenciando: {selectedManageRestaurant.name}</h2>
+                  </div>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nome *</label>
-                      <input type="text" value={restName} onChange={e => setRestName(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* COLUNA ESQUERDA: PERFIL */}
+                    <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4 h-fit">
+                      <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                        <Edit2 className="w-4 h-4 text-indigo-400" /> Perfil do Restaurante
+                      </h3>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Categoria</label>
-                        <select value={restCategory} onChange={e => setRestCategory(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none">
-                          {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nome *</label>
+                        <input type="text" value={restName} onChange={e => setRestName(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none" />
                       </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Categoria</label>
+                          <select value={restCategory} onChange={e => setRestCategory(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none">
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bairro</label>
+                          <select value={restNeighborhood} onChange={e => setRestNeighborhood(e.target.value as any)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none">
+                            <option value="Rio Vermelho">Rio Vermelho</option><option value="Barra">Barra</option>
+                            <option value="Pelourinho">Pelourinho</option><option value="Pituba">Pituba</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Logomarca</label>
+                          <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-indigo-500 rounded-xl px-4 py-2 flex items-center justify-center gap-2 transition">
+                            <Upload className="w-4 h-4 text-indigo-400" />
+                            <span className="text-xs text-slate-300 font-medium truncate">{restLogoFile ? restLogoFile.name : 'Alterar Logo'}</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={e => {
+                              if (e.target.files && e.target.files[0]) { setRestLogoFile(e.target.files[0]); setRestLogoUrl(''); }
+                            }} />
+                          </label>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Capa (Banner)</label>
+                          <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-indigo-500 rounded-xl px-4 py-2 flex items-center justify-center gap-2 transition">
+                            <Upload className="w-4 h-4 text-indigo-400" />
+                            <span className="text-xs text-slate-300 font-medium truncate">{restImageFile ? restImageFile.name : 'Alterar Capa'}</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={e => {
+                              if (e.target.files && e.target.files[0]) { setRestImageFile(e.target.files[0]); setRestImageUrl(''); }
+                            }} />
+                          </label>
+                        </div>
+                      </div>
+
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bairro</label>
-                        <select value={restNeighborhood} onChange={e => setRestNeighborhood(e.target.value as any)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none">
-                          <option value="Rio Vermelho">Rio Vermelho</option><option value="Barra">Barra</option>
-                          <option value="Pelourinho">Pelourinho</option><option value="Pituba">Pituba</option>
-                        </select>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Descrição</label>
+                        <textarea value={restDescription} onChange={e => setRestDescription(e.target.value)} rows={3} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"></textarea>
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Foto do Restaurante (Capa)</label>
-                      <div className="flex items-center gap-3">
-                        <label className="flex-1 cursor-pointer bg-[#0B1121] border border-slate-800 border-dashed hover:border-indigo-500 rounded-xl px-4 py-2 flex items-center justify-center gap-2 transition">
-                          <Upload className="w-4 h-4 text-indigo-400" />
-                          <span className="text-xs text-slate-300 font-medium">{restImageFile ? restImageFile.name : 'Anexar nova foto'}</span>
-                          <input type="file" className="hidden" accept="image/*" onChange={e => {
-                            if (e.target.files && e.target.files[0]) {
-                              setRestImageFile(e.target.files[0]);
-                              setRestImageUrl(''); // clear URL if new file uploaded
-                            }
-                          }} />
-                        </label>
+                      <div className="pt-2">
+                        <button onClick={saveRestaurant} disabled={isSavingRest} className="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50">
+                          {isSavingRest ? 'Salvando Alterações...' : 'Salvar Perfil'}
+                        </button>
                       </div>
-                      {restImageUrl && !restImageFile && <p className="text-[10px] text-emerald-400 mt-1 truncate">Foto atual: {restImageUrl}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Descrição</label>
-                      <textarea value={restDescription} onChange={e => setRestDescription(e.target.value)} rows={3} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"></textarea>
                     </div>
 
-                    {/* PRATOS / CARDÁPIO */}
-                    <div className="mt-6 pt-6 border-t border-slate-800">
-                      <h4 className="text-xs font-bold text-white mb-4">Cardápio do Restaurante ({restDishes.length} pratos)</h4>
+                    {/* COLUNA DIREITA: CARDÁPIO */}
+                    <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6">
+                      <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-emerald-400" /> Gerenciar Cardápio
+                      </h3>
                       
-                      <div className="space-y-2 mb-4">
+                      <div className="bg-[#1F2937]/50 p-4 rounded-xl border border-slate-800/50 space-y-3 mb-6">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Adicionar Novo Prato</p>
+                        <input type="text" placeholder="Nome do prato" value={newDishName} onChange={e => setNewDishName(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                        <div className="flex gap-2">
+                          <input type="text" placeholder="Preço (Ex: 45.90)" value={newDishPrice} onChange={e => setNewDishPrice(e.target.value)} className="w-1/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                          <input type="text" placeholder="Breve descrição" value={newDishDesc} onChange={e => setNewDishDesc(e.target.value)} className="w-2/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+                        </div>
+                        <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 hover:border-indigo-500 rounded-xl px-3 py-2 flex items-center justify-center gap-2 transition text-xs text-slate-300">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span className="truncate">{newDishFile ? newDishFile.name : 'Anexar foto do prato'}</span>
+                          <input type="file" className="hidden" accept="image/*" onChange={e => {
+                            if (e.target.files && e.target.files[0]) setNewDishFile(e.target.files[0]);
+                          }} />
+                        </label>
+                        <button onClick={handleAddDish} className="w-full py-2 bg-emerald-600/20 text-emerald-400 rounded-xl text-xs font-bold hover:bg-emerald-600/30 transition">
+                          + Incluir Prato no Cardápio
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        <p className="text-xs font-bold text-white mb-2">Pratos Cadastrados ({restDishes.length})</p>
                         {restDishes.map((dish) => (
                           <div key={dish.id} className="flex justify-between items-center bg-[#0B1121] p-3 rounded-xl border border-slate-800">
                             <div className="flex items-center gap-3">
@@ -376,68 +545,22 @@ export default function SuperAdminDashboard({
                                 <p className="text-[10px] text-slate-400">R$ {dish.price.toFixed(2)}</p>
                               </div>
                             </div>
-                            <button onClick={() => handleRemoveDish(dish.id)} className="text-slate-500 hover:text-red-400 transition">
+                            <button onClick={() => handleRemoveDish(dish.id)} className="text-slate-500 hover:text-red-400 transition p-1">
                               <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
+                        {restDishes.length > 0 && (
+                          <button onClick={saveRestaurant} disabled={isSavingRest} className="w-full py-3 mt-4 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50">
+                            {isSavingRest ? 'Salvando...' : 'Salvar Alterações do Cardápio'}
+                          </button>
+                        )}
+                        {restDishes.length === 0 && <p className="text-xs text-slate-500 text-center py-4">Nenhum prato cadastrado ainda.</p>}
                       </div>
-
-                      <div className="bg-[#1F2937]/50 p-4 rounded-xl border border-slate-800/50 space-y-3">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Adicionar Novo Prato</p>
-                        <input type="text" placeholder="Nome do prato" value={newDishName} onChange={e => setNewDishName(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
-                        <div className="flex gap-2">
-                          <input type="text" placeholder="Preço (Ex: 45.90)" value={newDishPrice} onChange={e => setNewDishPrice(e.target.value)} className="w-1/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
-                          <input type="text" placeholder="Breve descrição" value={newDishDesc} onChange={e => setNewDishDesc(e.target.value)} className="w-2/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
-                        </div>
-                        <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 hover:border-indigo-500 rounded-xl px-3 py-2 flex items-center justify-center gap-2 transition text-xs text-slate-300">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{newDishFile ? newDishFile.name : 'Anexar foto do prato'}</span>
-                          <input type="file" className="hidden" accept="image/*" onChange={e => {
-                            if (e.target.files && e.target.files[0]) setNewDishFile(e.target.files[0]);
-                          }} />
-                        </label>
-                        <button onClick={handleAddDish} className="w-full py-2 bg-slate-800 text-indigo-400 rounded-xl text-xs font-bold hover:bg-slate-700 transition">
-                          + Incluir Prato
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 flex gap-3 mt-4 border-t border-slate-800">
-                      {editingRestaurant && <button onClick={resetRestForm} className="flex-1 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition" disabled={isSavingRest}>Cancelar</button>}
-                      <button onClick={saveRestaurant} disabled={isSavingRest} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50">
-                        {isSavingRest ? 'Salvando...' : 'Salvar Restaurante'}
-                      </button>
                     </div>
                   </div>
                 </div>
-
-                {/* LIST */}
-                <div className="lg:col-span-2 space-y-3">
-                  {restaurants.map(r => (
-                    <div key={r.id} className="bg-[#111827] border border-slate-800 p-4 rounded-2xl flex justify-between items-center hover:border-slate-700 transition">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden shrink-0 border border-slate-700">
-                          {r.imageUrl ? <img src={r.imageUrl} className="w-full h-full object-cover" alt="" /> : <Store className="w-5 h-5 text-slate-500 m-auto mt-3" />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-white mb-0.5">{r.name}</p>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                            <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">{r.category}</span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {r.neighborhood}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <button onClick={() => startEditRest(r)} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700 hover:text-white transition"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => onDeleteRestaurant(r.id)} className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    </div>
-                  ))}
-                  {restaurants.length === 0 && <p className="text-center text-slate-500 text-sm py-10">Nenhum restaurante cadastrado.</p>}
-                </div>
-              </div>
+              )}
             </div>
           )}
 
