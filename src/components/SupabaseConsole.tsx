@@ -51,7 +51,7 @@ export default function SupabaseConsole({
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans text-left">
+    <div className="fixed bottom-6 left-6 z-50 font-sans text-left">
       {/* Floating activation pill */}
       <button
         id="btn-supabase-console-toggle"
@@ -76,7 +76,7 @@ export default function SupabaseConsole({
 
       {/* Admin Panel Overlay */}
       {isOpen && (
-        <div className="absolute bottom-14 right-0 w-[420px] max-w-[calc(100vw-2rem)] bg-white border border-neutral-200 shadow-2xl rounded-2xl overflow-hidden animate-fade-in text-neutral-800 transition-all">
+        <div className="absolute bottom-14 left-0 w-[420px] max-w-[calc(100vw-2rem)] bg-white border border-neutral-200 shadow-2xl rounded-2xl overflow-hidden animate-fade-in text-neutral-800 transition-all">
           
           {/* HEADER */}
           <div className="bg-neutral-900 text-white p-4 flex justify-between items-center">

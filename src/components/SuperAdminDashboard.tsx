@@ -257,7 +257,7 @@ export default function SuperAdminDashboard({
         </header>
 
         {/* SCROLLABLE CONTENT */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-8 pb-32">
           
           {/* TAB: OVERVIEW */}
           {activeTab === 'overview' && (
