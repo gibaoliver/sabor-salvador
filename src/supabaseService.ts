@@ -34,8 +34,8 @@ export function mapRowToRestaurant(row: any): Restaurant {
     address: row.address,
     phone: row.phone,
     closesAt: row.closes_at,
-    dishes: Array.isArray(row.dishes) ? row.dishes : [],
-    reviews: Array.isArray(row.reviews) ? row.reviews : [],
+    dishes: Array.isArray(row.dishes) ? row.dishes : (typeof row.dishes === 'string' ? JSON.parse(row.dishes || '[]') : []),
+    reviews: Array.isArray(row.reviews) ? row.reviews : (typeof row.reviews === 'string' ? JSON.parse(row.reviews || '[]') : []),
     featured: !!row.featured,
   };
 }

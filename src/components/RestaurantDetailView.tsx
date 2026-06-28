@@ -170,7 +170,7 @@ export default function RestaurantDetailView({
                  <h3 className="font-display text-lg font-bold">Horário de Funcionamento</h3>
               </div>
               
-              <div className="space-y-4 text-xs font-semibold text-brand-on-surface-variant border-b border-[#e8e4dc] pb-6 mb-6">
+              <div className="space-y-4 text-xs font-semibold text-brand-on-surface-variant border-[#e8e4dc] mb-2">
                  <div className="flex justify-between items-center">
                     <span>Seg - Qui</span>
                     <span>18:00 - {restaurant.closesAt}</span>
@@ -184,14 +184,6 @@ export default function RestaurantDetailView({
                     <span>12:00 - 21:00</span>
                  </div>
               </div>
-              
-              <div className="bg-[#efeadf] p-4 rounded-xl text-center italic text-xs text-brand-on-surface-variant font-medium mb-6 shadow-inner">
-                 "A arte da culinária é a linguagem universal do afeto."
-              </div>
-
-              <button className="w-full py-3.5 bg-[#1a1a1a] text-white font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-black transition shadow-lg flex items-center justify-center gap-2">
-                 Solicitar Reserva
-              </button>
             </div>
 
             {/* Contact details box */}
@@ -219,29 +211,6 @@ export default function RestaurantDetailView({
                     <p className="font-medium mt-0.5">{restaurant.phone || '(71) 99999-9999'}</p>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Simulated Live Map Device */}
-            <div className="bg-[#fadcd2]/40 rounded-3xl p-4 border border-brand-container-highest flex flex-col justify-between items-center text-center relative h-40 overflow-hidden shadow-inner group">
-              <div 
-                className="absolute inset-0 opacity-25 bg-[radial-gradient(#a73a00_1px,transparent_1px)]"
-                style={{ backgroundSize: '12px 12px' }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-10 h-10 bg-brand-primary-container/20 rounded-full flex items-center justify-center animate-pulse">
-                  <MapPin className="w-6 h-6 text-brand-primary group-hover:animate-bounce" />
-                </div>
-              </div>
-              
-              <div className="z-10 mt-auto w-full">
-                <button 
-                  onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(restaurant.address)}`)}
-                  className="w-full bg-brand-primary-container hover:bg-brand-primary text-white font-bold text-xs py-3 px-5 rounded-full shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:scale-101"
-                >
-                  <Navigation className="w-3.5 h-3.5" />
-                  <span>Obter Rotas</span>
-                </button>
               </div>
             </div>
 
