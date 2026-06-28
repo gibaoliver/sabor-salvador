@@ -7,23 +7,19 @@ import RestaurantListView from './components/RestaurantListView';
 import RestaurantDetailView from './components/RestaurantDetailView';
 import EventsView from './components/EventsView';
 import EventDetailView from './components/EventDetailView';
-import GuidesView from './components/GuidesView';
-import GuideDetailView from './components/GuideDetailView';
 
 import { 
   getRestaurantsFromSupabase, 
   getEventsFromSupabase, 
-  getArticlesFromSupabase,
   upsertRestaurantToSupabase,
   getCategoriesFromSupabase
 } from './supabaseService';
 
 import { 
   INITIAL_RESTAURANTS, 
-  INITIAL_EVENTS, 
-  INITIAL_ARTICLES 
+  INITIAL_EVENTS 
 } from './data';
-import { Restaurant, Event, Review, GuideArticle } from './types';
+import { Restaurant, Event, Review } from './types';
 
 function RestaurantDetailViewWrapper({ restaurants, onAddReview }: { restaurants: Restaurant[], onAddReview: (id: string, review: Review) => void }) {
   const { id } = useParams();
@@ -61,7 +57,6 @@ export default function App() {
   // Real reactive state
   const [restaurants, setRestaurants] = useState<Restaurant[]>(INITIAL_RESTAURANTS);
   const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS);
-  const [articles, setArticles] = useState<GuideArticle[]>(INITIAL_ARTICLES);
   const [categories, setCategories] = useState<string[]>([]);
 
   // Search routing state
@@ -74,7 +69,6 @@ export default function App() {
     try {
       const supRests = await getRestaurantsFromSupabase();
       const supEvents = await getEventsFromSupabase();
-      const supArticles = await getArticlesFromSupabase();
       const supCategories = await getCategoriesFromSupabase();
 
       if (supRests && supRests.length > 0) {
@@ -82,9 +76,6 @@ export default function App() {
       }
       if (supEvents && supEvents.length > 0) {
         setEvents(supEvents);
-      }
-      if (supArticles && supArticles.length > 0) {
-        setArticles(supArticles);
       }
       if (supCategories && supCategories.length > 0) {
         setCategories(supCategories);
@@ -173,14 +164,6 @@ export default function App() {
 
           <Route path="/eventos/:slug" element={
             <EventDetailView events={events} />
-          } />
-
-          <Route path="/guias" element={
-            <GuidesView articles={articles} />
-          } />
-
-          <Route path="/guias/:slug" element={
-            <GuideDetailView articles={articles} />
           } />
           
           {/* Fallback route */}

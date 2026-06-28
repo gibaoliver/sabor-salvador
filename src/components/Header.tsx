@@ -38,14 +38,6 @@ export default function Header() {
           >
             Eventos
           </Link>
-          <Link
-            to="/guias"
-            className={`hover:text-brand-primary transition-colors py-1 relative ${
-              currentPath.startsWith('/guias') ? 'text-brand-primary font-semibold border-b-2 border-brand-primary' : ''
-            }`}
-          >
-            Guias & Blog
-          </Link>
         </nav>
 
         {/* Interactive Controls (Search, Notifications) */}

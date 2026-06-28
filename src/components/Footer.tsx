@@ -20,7 +20,7 @@ export default function Footer() {
           <Link to="/" onClick={handleNav} className="hover:text-white transition">Início</Link>
           <Link to="/restaurantes" onClick={handleNav} className="hover:text-white transition">Restaurantes</Link>
           <Link to="/eventos" onClick={handleNav} className="hover:text-white transition">Eventos</Link>
-          <Link to="/guias" onClick={handleNav} className="hover:text-white transition">Guias & Blog</Link>
+
         </div>
       </div>
 
