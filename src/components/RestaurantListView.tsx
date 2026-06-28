@@ -237,13 +237,17 @@ export default function RestaurantListView({
                   key={restaurant.id}
                   className="bg-white rounded-3xl overflow-hidden hover:shadow-xl transition duration-300 border border-brand-container-high flex flex-col group h-full"
                 >
-                  <div className="relative h-48 w-full overflow-hidden shrink-0">
-                    <img 
-                      src={restaurant.imageUrl} 
-                      alt={restaurant.name} 
-                      className="w-full h-full object-cover group-hover:scale-102 transition"
-                      referrerPolicy="no-referrer"
-                    />
+                  <div className="relative h-48 w-full overflow-hidden shrink-0 bg-brand-surface border-b border-brand-container-high flex items-center justify-center">
+                    {restaurant.imageUrl ? (
+                      <img 
+                        src={restaurant.imageUrl} 
+                        alt={restaurant.name} 
+                        className="w-full h-full object-cover group-hover:scale-102 transition"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-bold text-brand-outline-variant uppercase tracking-widest">Sem Imagem</span>
+                    )}
                     <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold text-brand-on-surface flex items-center gap-1 shadow-sm">
                       <MapPin className="w-3 h-3 text-brand-primary" />
                       <span>{restaurant.neighborhood}</span>
