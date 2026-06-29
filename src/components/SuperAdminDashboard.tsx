@@ -438,7 +438,7 @@ export default function SuperAdminDashboard({
                           <button onClick={() => { startEditRest(r); setSelectedManageRestaurant(r); }} className="flex-1 py-2 rounded-xl bg-indigo-500/10 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 transition flex items-center justify-center gap-2">
                             <Edit2 className="w-3.5 h-3.5" /> Gerenciar
                           </button>
-                          <button onClick={() => onDeleteRestaurant(r.id)} className="w-10 h-10 shrink-0 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition">
+                          <button onClick={() => { if (window.confirm(`Deseja realmente excluir o restaurante ${r.name}?`)) onDeleteRestaurant(r.id); }} className="w-10 h-10 shrink-0 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

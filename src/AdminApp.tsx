@@ -8,6 +8,7 @@ import {
   getRestaurantsFromSupabase, 
   getEventsFromSupabase, 
   upsertRestaurantToSupabase, 
+  deleteRestaurantFromSupabase,
   upsertEventToSupabase, 
   deleteEventFromSupabase, 
   getCategoriesFromSupabase,
@@ -123,6 +124,7 @@ export default function AdminApp() {
 
   const handleDeleteRestaurant = async (restId: string) => {
     setRestaurants(prev => prev.filter(r => r.id !== restId));
+    await deleteRestaurantFromSupabase(restId);
   };
 
   const handleAddCategory = async (cat: string) => {

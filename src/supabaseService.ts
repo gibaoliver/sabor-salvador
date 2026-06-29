@@ -90,6 +90,20 @@ export async function upsertRestaurantToSupabase(rest: Restaurant): Promise<bool
   return true;
 }
 
+// Delete restaurant from Supabase
+export async function deleteRestaurantFromSupabase(restId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('restaurants')
+    .delete()
+    .eq('id', restId);
+
+  if (error) {
+    console.error(`Error deleting restaurant ${restId} from Supabase:`, error);
+    return false;
+  }
+  return true;
+}
+
 // Fetch all events
 export async function getEventsFromSupabase(): Promise<Event[] | null> {
   const { data, error } = await supabase
