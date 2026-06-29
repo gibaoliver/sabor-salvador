@@ -147,11 +147,13 @@ export default function RestaurantDetailView({
                           {dish.description}
                         </p>
                         
-                        {/* Tags for presentation like in the model */}
-                        <div className="flex flex-wrap gap-2">
-                           <span className="px-3 py-1 border border-brand-outline-variant rounded-full text-[9px] font-bold text-brand-outline uppercase tracking-wider">Original</span>
-                           <span className="px-3 py-1 border border-brand-outline-variant rounded-full text-[9px] font-bold text-brand-outline uppercase tracking-wider">Chef's Choice</span>
-                        </div>
+                        {/* Ingredients presentation */}
+                        {dish.ingredients && (
+                          <div className="flex gap-2 items-start mt-2 border-t border-brand-container-highest pt-3">
+                             <span className="text-[10px] font-extrabold text-brand-outline uppercase tracking-wider shrink-0 mt-0.5">Ingredientes:</span>
+                             <span className="text-xs text-brand-on-surface-variant font-medium">{dish.ingredients}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))

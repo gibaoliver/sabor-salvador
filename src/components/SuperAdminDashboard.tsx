@@ -39,11 +39,13 @@ export default function SuperAdminDashboard({
   const [restLogoFile, setRestLogoFile] = useState<File | null>(null);
   const [restDescription, setRestDescription] = useState('');
   const [restDishes, setRestDishes] = useState<Dish[]>([]);
+  const [restFeatured, setRestFeatured] = useState(false);
   const [isSavingRest, setIsSavingRest] = useState(false);
 
   // -- Dish Form State --
   const [newDishName, setNewDishName] = useState('');
   const [newDishDesc, setNewDishDesc] = useState('');
+  const [newDishIngredients, setNewDishIngredients] = useState('');
   const [newDishPrice, setNewDishPrice] = useState('');
   const [newDishFile, setNewDishFile] = useState<File | null>(null);
 
@@ -75,12 +77,14 @@ export default function SuperAdminDashboard({
     setRestLogoFile(null);
     setRestDescription('');
     setRestDishes([]);
+    setRestFeatured(false);
     resetDishForm();
   };
 
   const resetDishForm = () => {
     setNewDishName('');
     setNewDishDesc('');
+    setNewDishIngredients('');
     setNewDishPrice('');
     setNewDishFile(null);
   };
@@ -98,6 +102,7 @@ export default function SuperAdminDashboard({
       id: `dish-${Date.now()}`,
       name: newDishName,
       description: newDishDesc,
+      ingredients: newDishIngredients,
       price: parseFloat(newDishPrice.replace(',', '.')) || 0,
       imageUrl: uploadedDishUrl
     };
@@ -121,6 +126,7 @@ export default function SuperAdminDashboard({
     setRestLogoFile(null);
     setRestDescription(r.description);
     setRestDishes(r.dishes || []);
+    setRestFeatured(!!r.featured);
     resetDishForm();
   };
 
@@ -145,7 +151,7 @@ export default function SuperAdminDashboard({
       id: baseId, name: restName, rating: 5.0, reviewsCount: 0,
       neighborhood: restNeighborhood, priceRange: '$$', category: restCategory || categories[0],
       imageUrl: finalImageUrl, logoUrl: finalLogoUrl,
-      description: restDescription, address: '', phone: '', closesAt: '23:00', dishes: restDishes, reviews: [], featured: true
+      description: restDescription, address: '', phone: '', closesAt: '23:00', dishes: restDishes, reviews: [], featured: restFeatured
     };
     newRest.name = restName; 
     newRest.category = restCategory; 
@@ -154,6 +160,7 @@ export default function SuperAdminDashboard({
     newRest.logoUrl = finalLogoUrl;
     newRest.description = restDescription;
     newRest.dishes = restDishes;
+    newRest.featured = restFeatured;
     
     if (editingRestaurant) onUpdateRestaurant(newRest); else onAddRestaurant(newRest);
     
@@ -393,6 +400,10 @@ export default function SuperAdminDashboard({
                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Descrição</label>
                     <textarea value={restDescription} onChange={e => setRestDescription(e.target.value)} rows={3} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"></textarea>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="featured-create" checked={restFeatured} onChange={e => setRestFeatured(e.target.checked)} className="w-4 h-4 rounded border-slate-800 bg-[#0B1121] text-indigo-500 focus:ring-indigo-500" />
+                    <label htmlFor="featured-create" className="text-xs font-bold text-slate-300">Restaurante em Destaque (Aparece no carrossel da Home)</label>
+                  </div>
                   <div className="pt-4 flex gap-3 border-t border-slate-800">
                     <button onClick={saveRestaurant} disabled={isSavingRest} className="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50">
                       {isSavingRest ? 'Cadastrando...' : 'Cadastrar Restaurante'}
@@ -498,6 +509,10 @@ export default function SuperAdminDashboard({
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Descrição</label>
                         <textarea value={restDescription} onChange={e => setRestDescription(e.target.value)} rows={3} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"></textarea>
                       </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <input type="checkbox" id="featured-manage" checked={restFeatured} onChange={e => setRestFeatured(e.target.checked)} className="w-4 h-4 rounded border-slate-800 bg-[#0B1121] text-indigo-500 focus:ring-indigo-500" />
+                        <label htmlFor="featured-manage" className="text-xs font-bold text-slate-300">Restaurante em Destaque (Aparece no carrossel da Home)</label>
+                      </div>
                       <div className="pt-2">
                         <button onClick={saveRestaurant} disabled={isSavingRest} className="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50">
                           {isSavingRest ? 'Salvando Alterações...' : 'Salvar Perfil'}
@@ -518,6 +533,7 @@ export default function SuperAdminDashboard({
                           <input type="text" placeholder="Preço (Ex: 45.90)" value={newDishPrice} onChange={e => setNewDishPrice(e.target.value)} className="w-1/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
                           <input type="text" placeholder="Breve descrição" value={newDishDesc} onChange={e => setNewDishDesc(e.target.value)} className="w-2/3 bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
                         </div>
+                        <textarea placeholder="Ingredientes (ex: Camarão, azeite de dendê, cebola...)" value={newDishIngredients} onChange={e => setNewDishIngredients(e.target.value)} className="w-full bg-[#0B1121] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" rows={2} />
                         <label className="w-full cursor-pointer bg-[#0B1121] border border-slate-800 hover:border-indigo-500 rounded-xl px-3 py-2 flex items-center justify-center gap-2 transition text-xs text-slate-300">
                           <Upload className="w-3.5 h-3.5" />
                           <span className="truncate">{newDishFile ? newDishFile.name : 'Anexar foto do prato'}</span>

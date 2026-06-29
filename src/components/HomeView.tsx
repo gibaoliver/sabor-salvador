@@ -24,7 +24,21 @@ export default function HomeView({
   const [foodInput, setFoodInput] = useState('');
   const [bairroInput, setBairroInput] = useState('');
 
-  const featuredList = restaurants.filter(r => r.featured);
+  const featuredList = restaurants.filter(r => r.featured).slice(0, 5);
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  React.useEffect(() => {
+    if (featuredList.length <= 1) return;
+    const interval = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % featuredList.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [featuredList.length]);
+
+  const heroRest = featuredList.length > 0 ? featuredList[heroIndex] : restaurants[0];
+  const remainingRestaurants = restaurants.filter(r => r.id !== heroRest?.id);
+  const secondRest = remainingRestaurants[0];
+  const thirdRest = remainingRestaurants[1];
   
   // Emojis mapping for default categories
   const EMOJI_MAP: Record<string, string> = {
@@ -158,37 +172,57 @@ export default function HomeView({
         {/* Bento Grid Container */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[250px] md:auto-rows-[190px] lg:auto-rows-[210px]">
           
-          {/* Card 1: Huge Hero Bento (Casa de Tereza) - spans 8 cols, 2 rows in large screens */}
-          <div className="md:col-span-12 lg:col-span-8 lg:row-span-2 bg-brand-primary text-white rounded-[24px] p-8 md:p-10 flex flex-col justify-between overflow-hidden relative group shadow-lg hover:shadow-2xl transition duration-500">
-            {/* Absolute decorative circle matching Bento template */}
-            <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-xl group-hover:scale-110 transition duration-500" />
-            <div className="absolute top-0 right-0 w-full h-full bg-cover bg-center brightness-60 opacity-20 group-hover:opacity-30 group-hover:scale-101 transition duration-500 select-none pointer-events-none" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80')` }} />
-            
-            <div className="relative z-10 text-left">
-              <span className="text-[10px] font-extrabold bg-white/20 text-white px-3 py-1.5 rounded-md uppercase tracking-wider mb-6 inline-block">
-                ★ MELHOR DA BAHIA
-              </span>
-              <h3 className="font-display text-3xl md:text-4.5xl font-extrabold tracking-tight leading-tight mb-4 group-hover:translate-x-1 transition duration-300">
-                Casa de Tereza
-              </h3>
-              <p className="text-sm md:text-base text-white/95 max-w-xl font-medium leading-relaxed">
-                A Casa de Tereza é uma viagem de sabores em um ambiente que respira arte baiana. Cada prato conta uma história de dendê e axé.
-              </p>
-            </div>
+          {/* Card 1: Huge Hero Bento - spans 8 cols, 2 rows in large screens */}
+          {heroRest && (
+            <div className="md:col-span-12 lg:col-span-8 lg:row-span-2 bg-brand-primary text-white rounded-[24px] p-8 md:p-10 pb-12 flex flex-col justify-between overflow-hidden relative group shadow-lg hover:shadow-2xl transition duration-500">
+              {/* Absolute decorative circle matching Bento template */}
+              <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-xl group-hover:scale-110 transition duration-500 z-0" />
+              
+              {/* Background image with key for animation */}
+              <div key={`bg-${heroRest.id}`} className="animate-fade-in absolute top-0 right-0 w-full h-full bg-cover bg-center brightness-60 opacity-20 group-hover:opacity-30 group-hover:scale-101 transition duration-500 select-none pointer-events-none z-0" style={{ backgroundImage: `url('${heroRest.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80'}')` }} />
+              
+              <div key={`content-${heroRest.id}`} className="animate-fade-in relative z-10 text-left flex flex-col h-full justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold bg-white/20 text-white px-3 py-1.5 rounded-md uppercase tracking-wider mb-6 inline-block">
+                    ★ DESTAQUE
+                  </span>
+                  <h3 className="font-display text-3xl md:text-4.5xl font-extrabold tracking-tight leading-tight mb-4 group-hover:translate-x-1 transition duration-300">
+                    {heroRest.name}
+                  </h3>
+                  <p className="text-sm md:text-base text-white/95 max-w-xl font-medium leading-relaxed line-clamp-3">
+                    {heroRest.description}
+                  </p>
+                </div>
 
-            <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 pt-6 border-t border-white/10">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🌴🌴🌴</span>
-                <span className="text-xs font-bold text-white/90">Rio Vermelho • 4.8 Rating</span>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 pt-6 border-t border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🌴🌴🌴</span>
+                    <span className="text-xs font-bold text-white/90">{heroRest.neighborhood} • {heroRest.rating} Rating</span>
+                  </div>
+                  <button 
+                    onClick={() => onSelectRestaurant(heroRest.id)}
+                    className="bg-white text-brand-primary hover:bg-brand-surface-dim font-bold text-xs px-6 py-3 rounded-full transition shadow-md self-stretch sm:self-auto cursor-pointer"
+                  >
+                    Conhecer Menu Completo
+                  </button>
+                </div>
               </div>
-              <button 
-                onClick={() => onSelectRestaurant('casa-de-tereza')}
-                className="bg-white text-brand-primary hover:bg-brand-surface-dim font-bold text-xs px-6 py-3 rounded-full transition shadow-md self-stretch sm:self-auto cursor-pointer"
-              >
-                Conhecer Menu Completo
-              </button>
+
+              {/* Carousel Indicators */}
+              {featuredList.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                  {featuredList.map((_, idx) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setHeroIndex(idx)}
+                      className={`h-2 rounded-full transition-all duration-500 ${idx === heroIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80 w-2 cursor-pointer'}`}
+                      title={`Ver destaque ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Card 2: Stats Bento Block - spans 4 cols, 1 row */}
           <div className="md:col-span-6 lg:col-span-4 bg-white rounded-[24px] border border-brand-container-high p-6 flex flex-col justify-between hover:shadow-xl transition duration-300">
@@ -239,73 +273,77 @@ export default function HomeView({
             </button>
           </div>
 
-          {/* Card 4: Secondary Beautiful Restaurant Bento (Dona Mariquita) - spans 6 cols, 1 row */}
-          <div className="md:col-span-6 lg:col-span-6 bg-white rounded-[24px] border border-brand-container-high p-6 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-xl transition duration-300 group">
-            <div className="sm:w-1/3 min-h-[140px] bg-brand-surface rounded-[18px] overflow-hidden relative shrink-0">
-              <img 
-                src="https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=400&q=80" 
-                alt="Dona Mariquita" 
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            
-            <div className="flex flex-col justify-between flex-grow text-left">
-              <div>
-                <span className="text-[10px] font-extrabold text-brand-secondary uppercase tracking-wider">Cultura de Raiz</span>
-                <h4 className="font-display text-lg font-bold text-brand-on-surface line-clamp-1 mt-0.5 group-hover:text-brand-primary transition duration-300">
-                  Dona Mariquita
-                </h4>
-                <p className="text-xs text-brand-on-surface-variant line-clamp-2 mt-1.5 leading-relaxed">
-                  Sabores tradicionais de terreiros ensopados com carinho, resgatando origens autênticas no Rio Vermelho.
-                </p>
+          {/* Card 4: Secondary Beautiful Restaurant Bento - spans 6 cols, 1 row */}
+          {secondRest && (
+            <div className="md:col-span-6 lg:col-span-6 bg-white rounded-[24px] border border-brand-container-high p-6 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-xl transition duration-300 group">
+              <div className="sm:w-1/3 min-h-[140px] bg-brand-surface rounded-[18px] overflow-hidden relative shrink-0">
+                <img 
+                  src={secondRest.imageUrl || 'https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=400&q=80'} 
+                  alt={secondRest.name} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                  referrerPolicy="no-referrer"
+                />
               </div>
+              
+              <div className="flex flex-col justify-between flex-grow text-left">
+                <div>
+                  <span className="text-[10px] font-extrabold text-brand-secondary uppercase tracking-wider">{secondRest.category || 'Restaurante'}</span>
+                  <h4 className="font-display text-lg font-bold text-brand-on-surface line-clamp-1 mt-0.5 group-hover:text-brand-primary transition duration-300">
+                    {secondRest.name}
+                  </h4>
+                  <p className="text-xs text-brand-on-surface-variant line-clamp-2 mt-1.5 leading-relaxed">
+                    {secondRest.description}
+                  </p>
+                </div>
 
-              <div className="flex justify-between items-center mt-4">
-                <span className="text-xs font-bold text-brand-on-surface">★ 4.9 (920)</span>
-                <button 
-                  onClick={() => onSelectRestaurant('dona-mariquita')}
-                  className="text-xs font-extrabold text-brand-primary hover:text-brand-primary-container"
-                >
-                  Espiar Menu →
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 5: Tertiary Beautiful Restaurant Bento (Cuco Bistrô) - spans 6 cols, 1 row */}
-          <div className="md:col-span-6 lg:col-span-6 bg-white rounded-[24px] border border-brand-container-high p-6 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-xl transition duration-300 group">
-            <div className="sm:w-1/3 min-h-[140px] bg-brand-surface rounded-[18px] overflow-hidden relative shrink-0">
-              <img 
-                src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=400&q=80" 
-                alt="Cuco Bistrô" 
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-
-            <div className="flex flex-col justify-between flex-grow text-left">
-              <div>
-                <span className="text-[10px] font-extrabold text-brand-secondary uppercase tracking-wider">Centro Histórico</span>
-                <h4 className="font-display text-lg font-bold text-brand-on-surface line-clamp-1 mt-0.5 group-hover:text-brand-primary transition duration-300">
-                  Cuco Bistrô
-                </h4>
-                <p className="text-xs text-brand-on-surface-variant line-clamp-2 mt-1.5 leading-relaxed">
-                  Localizado no coração do Pelourinho, combina herança baiana clássica com alta gastronomia contemporânea de alto nível.
-                </p>
-              </div>
-
-              <div className="flex justify-between items-center mt-4">
-                <span className="text-xs font-bold text-brand-on-surface">★ 4.6 (810)</span>
-                <button 
-                  onClick={() => onSelectRestaurant('cuco-bistro')}
-                  className="text-xs font-extrabold text-brand-primary hover:text-brand-primary-container"
-                >
-                  Espiar Menu →
-                </button>
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-xs font-bold text-brand-on-surface">★ {secondRest.rating} ({secondRest.reviewsCount || 0})</span>
+                  <button 
+                    onClick={() => onSelectRestaurant(secondRest.id)}
+                    className="text-xs font-extrabold text-brand-primary hover:text-brand-primary-container"
+                  >
+                    Espiar Menu →
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Card 5: Tertiary Beautiful Restaurant Bento - spans 6 cols, 1 row */}
+          {thirdRest && (
+            <div className="md:col-span-6 lg:col-span-6 bg-white rounded-[24px] border border-brand-container-high p-6 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-xl transition duration-300 group">
+              <div className="sm:w-1/3 min-h-[140px] bg-brand-surface rounded-[18px] overflow-hidden relative shrink-0">
+                <img 
+                  src={thirdRest.imageUrl || 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=400&q=80'} 
+                  alt={thirdRest.name} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+
+              <div className="flex flex-col justify-between flex-grow text-left">
+                <div>
+                  <span className="text-[10px] font-extrabold text-brand-secondary uppercase tracking-wider">{thirdRest.neighborhood || 'Local'}</span>
+                  <h4 className="font-display text-lg font-bold text-brand-on-surface line-clamp-1 mt-0.5 group-hover:text-brand-primary transition duration-300">
+                    {thirdRest.name}
+                  </h4>
+                  <p className="text-xs text-brand-on-surface-variant line-clamp-2 mt-1.5 leading-relaxed">
+                    {thirdRest.description}
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-xs font-bold text-brand-on-surface">★ {thirdRest.rating} ({thirdRest.reviewsCount || 0})</span>
+                  <button 
+                    onClick={() => onSelectRestaurant(thirdRest.id)}
+                    className="text-xs font-extrabold text-brand-primary hover:text-brand-primary-container"
+                  >
+                    Espiar Menu →
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </section>
