@@ -135,6 +135,27 @@ export default function AdminApp() {
     await upsertCategoryToSupabase(cat);
   };
 
+  const handleEditCategory = async (oldCat: string, newCat: string) => {
+    // update category list locally
+    setCategories(prev => prev.map(c => c === oldCat ? newCat : c));
+    
+    // update category in supabase
+    await deleteCategoryFromSupabase(oldCat);
+    await upsertCategoryToSupabase(newCat);
+    
+    // update all restaurants that have this category
+    const affectedRestaurants = restaurants.filter(r => r.category === oldCat);
+    const updatedRestaurants = affectedRestaurants.map(r => ({ ...r, category: newCat }));
+    
+    // update local state
+    setRestaurants(prev => prev.map(r => r.category === oldCat ? { ...r, category: newCat } : r));
+    
+    // update in supabase
+    for (const r of updatedRestaurants) {
+      await upsertRestaurantToSupabase(r);
+    }
+  };
+
   const handleDeleteCategory = async (cat: string) => {
     setCategories(prev => prev.filter(c => c !== cat));
     await deleteCategoryFromSupabase(cat);
@@ -196,6 +217,7 @@ export default function AdminApp() {
               onDeleteEvent={handleDeleteEvent}
               categories={categories}
               onAddCategory={handleAddCategory}
+              onEditCategory={handleEditCategory}
               onDeleteCategory={handleDeleteCategory}
             />
           ) : (

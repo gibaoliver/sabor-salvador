@@ -16,6 +16,7 @@ interface SuperAdminDashboardProps {
   onUpdateEvent: (ev: Event) => void;
   onDeleteEvent: (id: string) => void;
   onAddCategory: (cat: string) => void;
+  onEditCategory: (oldCat: string, newCat: string) => void;
   onDeleteCategory: (cat: string) => void;
 }
 
@@ -23,7 +24,7 @@ export default function SuperAdminDashboard({
   restaurants, events, categories,
   onAddRestaurant, onUpdateRestaurant, onDeleteRestaurant,
   onAddEvent, onUpdateEvent, onDeleteEvent,
-  onAddCategory, onDeleteCategory
+  onAddCategory, onEditCategory, onDeleteCategory
 }: SuperAdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'create_restaurants' | 'manage_restaurants' | 'events' | 'categories'>('overview');
   const [selectedManageRestaurant, setSelectedManageRestaurant] = useState<Restaurant | null>(null);
@@ -686,13 +687,27 @@ export default function SuperAdminDashboard({
                     {categories.map(c => (
                       <div key={c} className="flex items-center gap-2 bg-[#1F2937] border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200">
                         <span>{c}</span>
-                        <button 
-                          onClick={() => onDeleteCategory(c)} 
-                          className="text-slate-500 hover:text-red-400 transition"
-                          title="Remover"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                        <div className="flex gap-1 ml-1">
+                          <button 
+                            onClick={() => {
+                              const newName = window.prompt('Digite o novo nome para a categoria:', c);
+                              if (newName && newName.trim() !== '' && newName !== c) {
+                                onEditCategory(c, newName.trim());
+                              }
+                            }} 
+                            className="text-slate-500 hover:text-indigo-400 transition"
+                            title="Editar"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          <button 
+                            onClick={() => onDeleteCategory(c)} 
+                            className="text-slate-500 hover:text-red-400 transition"
+                            title="Remover"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
