@@ -85,9 +85,9 @@ export default function HomeView({
     <div className="animate-fade-in bg-brand-surface text-brand-on-surface flex-grow">
       {/* 1. HERO CORNER - Screen 1 Header Background */}
       <section 
-        className="relative min-h-[500px] md:min-h-[560px] flex flex-col justify-center items-center px-4 py-16 bg-cover bg-center"
+        className="relative min-h-[380px] md:min-h-[420px] flex flex-col justify-center items-center px-4 py-12 bg-cover bg-center"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(39, 24, 18, 0.45), rgba(39, 24, 18, 0.70)), url('https://images.unsplash.com/photo-1594142404563-64cccaf5a10f?auto=format&fit=crop&w=1920&q=80')`
+          backgroundImage: `linear-gradient(to bottom, rgba(39, 24, 18, 0.55), rgba(39, 24, 18, 0.85)), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80')`
         }}
       >
         <div className="text-center max-w-3xl mx-auto z-10">
